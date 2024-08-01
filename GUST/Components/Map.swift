@@ -115,7 +115,7 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
         let hostingController = UIHostingController(rootView: bottomSheetView)
         
         if let sheet = hostingController.sheetPresentationController {
-            sheet.detents = [.medium(), .large()]
+            sheet.detents = [.large()]
             sheet.prefersGrabberVisible = true
             sheet.preferredCornerRadius = 20
         }

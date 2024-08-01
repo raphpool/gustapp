@@ -5,7 +5,8 @@ struct AirtableResponse<T: Codable>: Codable {
     let offset: String?
 }
 
-struct KiteSpotFields: Codable, Hashable {
+struct KiteSpotFields: Codable, Hashable, Identifiable {
+    let id: String?
     let spotName: String?
     let spotDirection: String?
     let lowTide: String?

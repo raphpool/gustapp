@@ -47,6 +47,7 @@
 		1031830C2C5A5A9800FF299C /* AWSS3Control in Frameworks */ = {isa = PBXBuildFile; productRef = 1031830B2C5A5A9800FF299C /* AWSS3Control */; };
 		1031830E2C5A5E7000FF299C /* ImageDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1031830D2C5A5E7000FF299C /* ImageDetail.swift */; };
 		103183102C5A5F7900FF299C /* AWSClientRuntime in Frameworks */ = {isa = PBXBuildFile; productRef = 1031830F2C5A5F7900FF299C /* AWSClientRuntime */; };
+		103183122C5B8F6B00FF299C /* ForecastList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103183112C5B8F6B00FF299C /* ForecastList.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -102,6 +103,7 @@
 		103182F82C5A3C7A00FF299C /* AWSS3Manager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AWSS3Manager.swift; path = GUST/Components/AWSS3Manager.swift; sourceTree = SOURCE_ROOT; };
 		103183082C5A3E5B00FF299C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		1031830D2C5A5E7000FF299C /* ImageDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageDetail.swift; sourceTree = "<group>"; };
+		103183112C5B8F6B00FF299C /* ForecastList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastList.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -226,6 +228,7 @@
 				103182F22C5A3B2F00FF299C /* InteractiveLine.swift */,
 				103182F42C5A3B3C00FF299C /* SpotPage.swift */,
 				103182EB2C5A37FA00FF299C /* SearchBar.swift */,
+				103183112C5B8F6B00FF299C /* ForecastList.swift */,
 				103182E02C58CF4E00FF299C /* ForecastTable.swift */,
 				103182DE2C57EB0B00FF299C /* GustSpinner.swift */,
 				103182C42C57E33300FF299C /* LabelCell.swift */,
@@ -412,6 +415,7 @@
 				103182C92C57E36E00FF299C /* RelativeDirectionCell.swift in Sources */,
 				103182F72C5A3B5000FF299C /* SpotPageBottomSheet.swift in Sources */,
 				103182F52C5A3B3C00FF299C /* SpotPage.swift in Sources */,
+				103183122C5B8F6B00FF299C /* ForecastList.swift in Sources */,
 				103182D52C57E44B00FF299C /* FetchSpot.swift in Sources */,
 				103182D72C57E45800FF299C /* FetchForecast.swift in Sources */,
 				103182E12C58CF4E00FF299C /* ForecastTable.swift in Sources */,

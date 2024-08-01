@@ -5,18 +5,16 @@ struct ContentView: View {
     @State private var pngFiles: [PNGFile] = []
     @State private var selectedImage: UIImage? = nil
     @State private var selectedTilesetId: String? = nil
-    @State private var isSearchOverlayPresented = false
-
+    @State private var isSearchSheetPresented = false
+    
     var body: some View {
         ZStack(alignment: .bottom) {
             CustomMapViewControllerRepresentable(selectedImage: selectedImage, tilesetId: selectedTilesetId)
                 .edgesIgnoringSafeArea(.all)
-
+            
             VStack {
                 Button(action: {
-                    withAnimation(.spring()) {
-                        isSearchOverlayPresented = true
-                    }
+                    isSearchSheetPresented = true
                 }) {
                     Text("Search")
                         .padding()
@@ -24,7 +22,7 @@ struct ContentView: View {
                         .cornerRadius(10)
                 }
                 .padding(.bottom, 8)
-
+                
                 PNGFilesScrollView(pngFiles: pngFiles) { pngFile in
                     Task {
                         await fetchImage(bucket: "gustlayers", key: pngFile.fullName)
@@ -42,11 +40,11 @@ struct ContentView: View {
                 .padding(.horizontal, 16)
             }
         }
-        .overlay(
-            SearchOverlayView(isPresented: $isSearchOverlayPresented)
-                .offset(y: isSearchOverlayPresented ? 0 : UIScreen.main.bounds.height)
-                .animation(.spring(), value: isSearchOverlayPresented)
-        )
+        .sheet(isPresented: $isSearchSheetPresented) {
+            SearchOverlayView(isPresented: $isSearchSheetPresented)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+        }
         .onAppear {
             Task {
                 do {
@@ -58,7 +56,7 @@ struct ContentView: View {
             }
         }
     }
-
+    
     func fetchImage(bucket: String, key: String) async {
         do {
             let s3 = try await S3Client()

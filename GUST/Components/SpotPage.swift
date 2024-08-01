@@ -3,6 +3,11 @@ import SwiftUI
 struct SpotPage: View {
     let kiteSpot: KiteSpotFields
     
+    init(kiteSpot: KiteSpotFields) {
+        self.kiteSpot = kiteSpot
+        print("SpotPage initialized with spot: \(kiteSpot.spotName ?? "Unknown")")
+    }
+    
     var formattedTides: String {
         var tides = [String]()
         if kiteSpot.lowTide == "Yes" { tides.append("Basse") }
@@ -81,93 +86,97 @@ struct SpotPage: View {
         }
     }
     var body: some View {
-           ScrollView {
-               VStack(alignment: .leading, spacing: 8) {
-                   // Spot name and address block
-                   VStack(alignment: .center, spacing: 8) {
-                       Text(kiteSpot.spotName ?? "Spot")
-                           .font(.title)
-                           .fontWeight(.semibold)
-                           .multilineTextAlignment(.center)
-                           .padding(.top)
-                       
-                       Link(destination: URL(string: "https://www.google.com/maps/place/\(kiteSpot.lat),\(kiteSpot.lon)")!) {
-                           Text(kiteSpot.fullAddress ?? "Adresse")
-                               .foregroundColor(Color.gray)
-                               .underline()
-                       }
-                   }
-                   .frame(maxWidth: .infinity)
-                   .padding(.bottom, 16)
-                   
-                   // Description
-                   informationContainerView {
-                       InteractiveLine(
-                           title: "Description du spot",
-                           content: kiteSpot.spotDescription2
-                       )
-                   }
-                   
-                   // Wind direction
-                   informationContainerView {
-                       InteractiveLine(
-                           title: "Orientations idéales",
-                           previewInfo: formattedBestWindDirection,
-                           content: kiteSpot.bestWindDescription2
-                       )
-                   }
-                   
-                   // Tides
-                   informationContainerView {
-                       InteractiveLine(
-                           title: "Marées praticables",
-                           previewInfo: formattedTides,
-                           content: kiteSpot.tideDescription2
-                       )
-                   }
-                   
-                   informationContainerView {
-                       VStack(spacing: 16) {
-                           InteractiveLine(
-                               title: "Vidéos",
-                               linkUrl: URL(string: "https://www.youtube.com/results?search_query=\(kiteSpot.spotName ?? "france")+kitesurf")
-                           )
-                           InteractiveLine(
-                               title: "Images",
-                               linkUrl: URL(string: "https://www.google.fr/search?q=\(kiteSpot.spotName ?? "france")+kitesurf&tbm=isch")
-                           )
-                       }
-                   }
-                   
-                   // More infos
-                   informationContainerView {
-                       InteractiveLine(
-                           title: "Plus d'infos",
-                           previewInfoUrl: URL(string: kiteSpot.about ?? ""),
-                           previewInfoUrl2: URL(string: kiteSpot.about2 ?? "")
-                       )
-                   }
-                   
-                   Spacer(minLength: 40)
-               }
-               .padding(.horizontal)
-           }
-           .background(Color(hex: "F9F9F9FF"))
-           .navigationBarTitle(Text("Spot Details"), displayMode: .large)
-       }
-       
-       // Helper view to provide consistent styling for InteractiveLine containers
-       @ViewBuilder
-       private func informationContainerView<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-           VStack {
-               content()
-           }
-           .padding(.vertical, 10)
-           .padding(.horizontal, 16)
-           .background(Color.white)
-           .cornerRadius(8)
-       }
-   }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 8) {
+                // Spot name and address block
+                VStack(alignment: .center, spacing: 8) {
+                    Text(kiteSpot.spotName ?? "Spot")
+                        .font(.title)
+                        .fontWeight(.semibold)
+                        .multilineTextAlignment(.center)
+                        .padding(.top)
+                    
+                    Link(destination: URL(string: "https://www.google.com/maps/place/\(kiteSpot.lat),\(kiteSpot.lon)")!) {
+                        Text(kiteSpot.fullAddress ?? "Adresse")
+                            .foregroundColor(Color.gray)
+                            .underline()
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.bottom, 16)
+                
+                // Description
+                informationContainerView {
+                    InteractiveLine(
+                        title: "Description du spot",
+                        content: kiteSpot.spotDescription2
+                    )
+                }
+                
+                // Wind direction
+                informationContainerView {
+                    InteractiveLine(
+                        title: "Orientations idéales",
+                        previewInfo: formattedBestWindDirection,
+                        content: kiteSpot.bestWindDescription2
+                    )
+                }
+                
+                // Tides
+                informationContainerView {
+                    InteractiveLine(
+                        title: "Marées praticables",
+                        previewInfo: formattedTides,
+                        content: kiteSpot.tideDescription2
+                    )
+                }
+                
+                informationContainerView {
+                    VStack(spacing: 16) {
+                        InteractiveLine(
+                            title: "Vidéos",
+                            linkUrl: URL(string: "https://www.youtube.com/results?search_query=\(kiteSpot.spotName ?? "france")+kitesurf")
+                        )
+                        InteractiveLine(
+                            title: "Images",
+                            linkUrl: URL(string: "https://www.google.fr/search?q=\(kiteSpot.spotName ?? "france")+kitesurf&tbm=isch")
+                        )
+                    }
+                }
+                
+                // More infos
+                informationContainerView {
+                    InteractiveLine(
+                        title: "Plus d'infos",
+                        previewInfoUrl: URL(string: kiteSpot.about ?? ""),
+                        previewInfoUrl2: URL(string: kiteSpot.about2 ?? "")
+                    )
+                }
+                
+                Spacer(minLength: 40)
+            }
+            .padding(.horizontal)
+        }
+        .background(Color(hex: "F9F9F9FF"))
+        .navigationBarTitle(Text("Spot Details"), displayMode: .large)
+        .onAppear {
+            print("SpotPage appeared with spot: \(kiteSpot.spotName ?? "Unknown")")
+            print("SpotPage kiteSpot details: \(String(describing: kiteSpot))")
+        }
+    }
+    
+    // Helper view to provide consistent styling for InteractiveLine containers
+    @ViewBuilder
+    private func informationContainerView<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        VStack {
+            content()
+        }
+        .padding(.vertical, 10)
+        .padding(.horizontal, 16)
+        .background(Color.white)
+        .cornerRadius(8)
+    }
+}
 
 extension Color {
     init(hex: String) {
@@ -183,6 +192,7 @@ extension Color {
 }
 
 let sampleKiteSpot = KiteSpotFields(
+    id : "pontmahe",
     spotName: "Pont-Mahe",
     spotDirection: "South-west",
     lowTide: "No",
