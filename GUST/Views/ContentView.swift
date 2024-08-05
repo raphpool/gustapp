@@ -6,11 +6,18 @@ struct ContentView: View {
     @State private var selectedImage: UIImage? = nil
     @State private var selectedTilesetId: String? = nil
     @State private var isSearchSheetPresented = false
+    @State private var currentTimestamp: Date? = nil
+    @StateObject private var forecastListViewModel = ForecastListViewModel()
+
     
     var body: some View {
         ZStack(alignment: .bottom) {
-            CustomMapViewControllerRepresentable(selectedImage: selectedImage, tilesetId: selectedTilesetId)
-                .edgesIgnoringSafeArea(.all)
+            CustomMapViewControllerRepresentable(
+                            selectedImage: selectedImage,
+                            tilesetId: selectedTilesetId,
+                            currentTimestamp: currentTimestamp,
+                            forecastRecords: forecastListViewModel.forecasts
+                        )                .edgesIgnoringSafeArea(.all)
             
             VStack {
                 Button(action: {
@@ -34,6 +41,12 @@ struct ContentView: View {
                             .replacingOccurrences(of: "T", with: "_") + "_Paris_Time"
                         
                         self.selectedTilesetId = tilesetId
+                        self.currentTimestamp = extractTimestamp(from: pngFile.fullName)
+                        if let timestamp = self.currentTimestamp {
+                                    print("Current timestamp set to: \(timestamp)")
+                                } else {
+                                    print("Failed to extract timestamp from: \(pngFile.fullName)")
+                                }
                     }
                 }
                 .frame(height: 150)
@@ -54,6 +67,9 @@ struct ContentView: View {
                     print("Failed to fetch files: \(error)")
                 }
             }
+            Task {
+                            await forecastListViewModel.fetchForecasts()
+                        }
         }
     }
     
@@ -75,5 +91,27 @@ struct ContentView: View {
         } catch {
             print("Failed to fetch image: \(error)")
         }
+    }
+    func extractTimestamp(from fileName: String) -> Date? {
+        // Remove "processed/" prefix and ".png" suffix
+        let cleanFileName = fileName
+            .replacingOccurrences(of: "processed/", with: "")
+            .replacingOccurrences(of: ".png", with: "")
+        
+        // Parse the date components
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HHmm"
+        dateFormatter.timeZone = TimeZone(identifier: "UTC")
+        
+        if let date = dateFormatter.date(from: cleanFileName) {
+            // Convert to ISO8601 format to match forecast timestamps
+            let iso8601Formatter = ISO8601DateFormatter()
+            iso8601Formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            let iso8601String = iso8601Formatter.string(from: date)
+            print("ContentView: Extracted timestamp ISO8601 string: \(iso8601String)")
+            return iso8601Formatter.date(from: iso8601String)
+        }
+        
+        return nil
     }
 }

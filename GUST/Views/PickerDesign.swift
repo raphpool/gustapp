@@ -7,15 +7,15 @@ struct PNGFilesScrollView: View {
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 15) {
-                ForEach(groupedPNGFiles, id: \.0) { (dayString, files) in
+                ForEach(groupedPNGFiles, id: \.0) { (date, files) in
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(dayString)
+                        Text(formatDay(date))
                             .font(.custom("Inter", size: 16).weight(.medium))
                             .foregroundColor(Color(red: 60/255, green: 60/255, blue: 67/255).opacity(0.6))
                             .padding(.horizontal, 8)
                         
                         HStack(spacing: 8) {
-                            ForEach(files, id: \.fullName) { pngFile in
+                            ForEach(files.sorted(by: { fileDate($0) < fileDate($1) }), id: \.fullName) { pngFile in
                                 Button(action: {
                                     onPNGFileTap(pngFile)
                                 }) {
@@ -38,10 +38,10 @@ struct PNGFilesScrollView: View {
         .cornerRadius(20)
     }
     
-    private var groupedPNGFiles: [(String, [PNGFile])] {
-        let grouped = Dictionary(grouping: pngFiles) { pngFile -> String in
+    private var groupedPNGFiles: [(Date, [PNGFile])] {
+        let grouped = Dictionary(grouping: pngFiles) { pngFile -> Date in
             let date = fileDate(pngFile)
-            return formatDay(date)
+            return Calendar.current.startOfDay(for: date)
         }
         return grouped.sorted { $0.key < $1.key }
     }
@@ -54,7 +54,7 @@ struct PNGFilesScrollView: View {
     }
     
     private func formatTime(_ pngFile: PNGFile) -> String {
-        return String(pngFile.displayName.suffix(4).prefix(2))
+        return String(pngFile.displayName.suffix(4).prefix(2)) + "h"
     }
     
     private func fileDate(_ pngFile: PNGFile) -> Date {
@@ -67,6 +67,7 @@ struct PNGFilesScrollView: View {
         return Date()
     }
 }
+
 
 
 struct ScrollOffsetPreferenceKey: PreferenceKey {
@@ -92,6 +93,7 @@ extension PNGFile {
     static var sampleData: [PNGFile] {
         [
             PNGFile(fullName: "processed/2024-03-05T1000.png"),
+            PNGFile(fullName: "processed/2024-03-07T0900.png"),
             PNGFile(fullName: "processed/2024-03-05T1100.png"),
             PNGFile(fullName: "processed/2024-03-05T1200.png"),
             PNGFile(fullName: "processed/2024-03-06T0800.png"),

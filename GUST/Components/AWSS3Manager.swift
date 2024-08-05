@@ -32,7 +32,6 @@ struct PNGFile {
     
     init(fullName: String) {
         self.fullName = fullName
-        // Extract the date and hour from the file name
         if let datePart = fullName.split(separator: "T").first,
            let timePart = fullName.split(separator: "T").last?.prefix(4) {
             let day = datePart.suffix(2)

@@ -31,7 +31,6 @@ struct WindDirectionCell_Previews: PreviewProvider {
                 .previewLayout(.sizeThatFits)
                 .padding()
                 .previewDisplayName("Best Wind Direction (Green Arrow)")
-
     }
 }
 

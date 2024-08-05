@@ -33,6 +33,25 @@ class ForecastListViewModel: ObservableObject {
     private let loadMoreThreshold = 4
     private let numberOfSpotsToLoad = 4
     
+    func fetchForecasts() async {
+        
+        do {
+            let allSpots = try await SpotFetcher().fetchKiteSpots()
+            let spotIds = allSpots.map { $0.spotId }
+            let records = try await forecastFetcher.fetchAllRecords(spotIds: spotIds)
+            
+            // Group records by spotId
+            let groupedRecords = Dictionary(grouping: records, by: { $0.fields.spotId })
+            
+            await MainActor.run {
+                self.forecasts = groupedRecords
+            }
+        } catch {
+            print("Error fetching forecasts: \(error)")
+        }
+    }
+    
+    
     func fetchSpotsAndCalculateDistances(coordinate: CLLocationCoordinate2D?) async {
         guard let searchCoordinates = coordinate else {
             await MainActor.run { self.resetFields() }
@@ -70,7 +89,7 @@ class ForecastListViewModel: ObservableObject {
                 }
                 return await group.reduce(into: []) { $0.append($1) }
             }
-            .sorted { ($0.distance ?? Double.infinity) < ($1.distance ?? Double.infinity) }
+                .sorted { ($0.distance ?? Double.infinity) < ($1.distance ?? Double.infinity) }
             
             await fetchForecastsForDisplayedSpots(updatedSpotFields)
             

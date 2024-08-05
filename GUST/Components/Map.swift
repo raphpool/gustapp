@@ -15,15 +15,21 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
             addWindDirectionLayer(with: tilesetId)
         }
     }
+    var currentTimestamp: Date?
+    var forecastRecords: [String: [Record]] = [:]
     private var bottomSheetViewController: UIHostingController<SpotDetailBottomSheet>?
-    
+    private var viewAnnotationManager: ViewAnnotationManager!
+
     private var cancelables = Set<AnyCancelable>()
     private var pointAnnotationManager: PointAnnotationManager!
     private var spotFetcher = SpotFetcher()
     private var kiteSpots: [KiteSpotFields] = []
     private var annotationToKiteSpotMap: [String: String] = [:]
-    private var currentViewAnnotation: ViewAnnotation?
-    
+    private var currentViewAnnotation: UIView?
+    private var selectedSpot: KiteSpotFields?
+
+
+
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -36,7 +42,8 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
         
         pointAnnotationManager = mapView.annotations.makePointAnnotationManager()
         pointAnnotationManager.delegate = self
-        
+        viewAnnotationManager = mapView.viewAnnotations
+
         fetchAndAddKiteSpots()
     }
     
@@ -44,10 +51,11 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
         Task {
             do {
                 let kiteSpots = try await spotFetcher.fetchKiteSpots()
+                print("CustomMapViewController: Fetched \(kiteSpots.count) kite spots")
                 self.kiteSpots = kiteSpots
                 addAnnotations(for: kiteSpots)
             } catch {
-                print("Error fetching kite spots: \(error)")
+                print("CustomMapViewController: Error fetching kite spots: \(error)")
             }
         }
     }
@@ -62,6 +70,9 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
             
             annotationToKiteSpotMap[annotation.id] = spot.spotName
         }
+        
+        print("CustomMapViewController: Adding \(annotations.count) point annotations")
+        print("CustomMapViewController: annotationToKiteSpotMap has \(annotationToKiteSpotMap.count) entries")
         
         DispatchQueue.main.async {
             self.pointAnnotationManager.annotations = annotations
@@ -82,35 +93,80 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
     }
     
     private func createViewAnnotationContent(for kiteSpotFields: KiteSpotFields) -> UIView {
-        let label = UILabel()
-        label.text = kiteSpotFields.spotName
-        label.font = UIFont.systemFont(ofSize: 18, weight: .semibold) // Using system font as a fallback
-        label.textColor = .black
-        label.textAlignment = .center
-        label.numberOfLines = 0
-        label.backgroundColor = .white
-        label.frame = CGRect(x: 0, y: 0, width: 200, height: 65)
-        label.layer.cornerRadius = 13
-        label.clipsToBounds = true
-        // Add tap gesture recognizer
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleAnnotationTap(_:)))
-        label.isUserInteractionEnabled = true
-        label.addGestureRecognizer(tapGesture)
-        
-        // Store the kiteSpotFields in the label's tag
-        label.tag = kiteSpotFields.hashValue
-        
-        return label
-    }
+        let containerView = UIView(frame: CGRect(x: 0, y: 0, width: 200, height: 120))
+        containerView.backgroundColor = .white
+        containerView.layer.cornerRadius = 13
+        containerView.clipsToBounds = true
+
+
+        let nameLabel = UILabel(frame: CGRect(x: 0, y: 0, width: 200, height: 40))
+        nameLabel.text = kiteSpotFields.spotName
+        nameLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        nameLabel.textColor = .black
+        nameLabel.textAlignment = .center
+        nameLabel.numberOfLines = 2
+
+        let windSpeedLabel = UILabel(frame: CGRect(x: 0, y: 40, width: 200, height: 25))
+        let windGustLabel = UILabel(frame: CGRect(x: 0, y: 65, width: 200, height: 25))
+        let windDirectionLabel = UILabel(frame: CGRect(x: 0, y: 90, width: 200, height: 25))
+
+        [windSpeedLabel, windGustLabel, windDirectionLabel].forEach {
+            $0.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+            $0.textColor = .darkGray
+            $0.textAlignment = .center
+        }
+
+        if let currentTimestamp = currentTimestamp,
+           let records = forecastRecords[kiteSpotFields.spotId],
+           let matchingRecord = findMatchingRecord(for: currentTimestamp, in: records) {
+            windSpeedLabel.text = "Wind: \(String(format: "%.1f", matchingRecord.fields.windSpeed)) knts"
+            windGustLabel.text = "Gust: \(String(format: "%.1f", matchingRecord.fields.windGust)) knts"
+            windDirectionLabel.text = "Direction: \(formatWindDirection(degrees: matchingRecord.fields.windDegrees)) (\(String(format: "%.0f", matchingRecord.fields.windDegrees))°)"
+        } else {
+            windSpeedLabel.text = "Wind: N/A"
+            windGustLabel.text = "Gust: N/A"
+            windDirectionLabel.text = "Direction: N/A"
+        }
+
+        [nameLabel, windSpeedLabel, windGustLabel, windDirectionLabel].forEach {
+                containerView.addSubview($0)
+            }
+
+            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleAnnotationTap(_:)))
+            containerView.isUserInteractionEnabled = true
+            containerView.addGestureRecognizer(tapGesture)
+
+            containerView.tag = kiteSpotFields.hashValue
+
+            return containerView
+        }
+
     @objc private func handleAnnotationTap(_ gesture: UITapGestureRecognizer) {
-        guard let label = gesture.view as? UILabel,
-              let kiteSpot = kiteSpots.first(where: { $0.hashValue == label.tag }) else {
+        guard let containerView = gesture.view else {
+            print("Failed to get container view")
             return
         }
         
-        presentBottomSheet(for: kiteSpot)
+        let tappedSpotId = containerView.tag
+        
+        if let kiteSpot = kiteSpots.first(where: { $0.spotId.hashValue == tappedSpotId }) {
+            print("Tapped on spot: \(kiteSpot.spotName ?? "Unknown"), spotId: \(kiteSpot.spotId)")
+            selectedSpot = kiteSpot
+            print("Set selectedSpot to \(kiteSpot.spotName ?? "Unknown")")
+            presentBottomSheet(for: kiteSpot)
+        } else {
+            print("Failed to find kiteSpot for tapped view with tag: \(tappedSpotId)")
+        }
     }
+
+    private func formatWindDirection(degrees: Double) -> String {
+        let directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
+        let index = Int((degrees + 11.25).truncatingRemainder(dividingBy: 360) / 22.5)
+        return directions[index]
+    }
+    
     private func presentBottomSheet(for kiteSpot: KiteSpotFields) {
+        print("Presenting bottom sheet for spot: \(kiteSpot.spotName ?? "Unknown")")
         let bottomSheetView = SpotDetailBottomSheet(kiteSpot: kiteSpot)
         let hostingController = UIHostingController(rootView: bottomSheetView)
         
@@ -120,17 +176,59 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
             sheet.preferredCornerRadius = 20
         }
         
-        present(hostingController, animated: true, completion: nil)
+        present(hostingController, animated: true) {
+            print("Bottom sheet presented successfully for spot: \(kiteSpot.spotName ?? "Unknown")")
+        }
         bottomSheetViewController = hostingController
     }
     
+    func updateAnnotations() {
+        print("CustomMapViewController: Updating annotations")
+        print("CustomMapViewController: Current timestamp: \(String(describing: currentTimestamp))")
+        print("CustomMapViewController: Forecast records count: \(forecastRecords.count)")
+        print("CustomMapViewController: Number of annotations: \(viewAnnotationManager.annotations.count)")
+        
+        for (view, _) in viewAnnotationManager.annotations {
+            if let kiteSpotFields = kiteSpots.first(where: { $0.spotId.hashValue == view.tag }) {
+                print("CustomMapViewController: Updating annotation for spot: \(kiteSpotFields.spotName ?? "Unknown")")
+                let updatedContent = createViewAnnotationContent(for: kiteSpotFields)
+                view.subviews.forEach { $0.removeFromSuperview() }
+                for subview in updatedContent.subviews {
+                    view.addSubview(subview)
+                }
+            } else {
+                print("CustomMapViewController: Could not find kite spot fields for annotation")
+            }
+        }
+    }
+    
     private func addViewAnnotation(at coordinate: CLLocationCoordinate2D, for kiteSpotFields: KiteSpotFields) {
-        currentViewAnnotation?.remove()
-        let view = createViewAnnotationContent(for: kiteSpotFields)
-        let viewAnnotation = ViewAnnotation(coordinate: coordinate, view: view)
-        viewAnnotation.variableAnchors = [ViewAnnotationAnchorConfig(anchor: .bottom, offsetY: -view.frame.height / 2)]
-        mapView.viewAnnotations.add(viewAnnotation)
-        currentViewAnnotation = viewAnnotation
+        print("CustomMapViewController: Adding view annotation for spot: \(kiteSpotFields.spotName ?? "Unknown")")
+        
+        // Remove existing view annotation if any
+        if let currentViewAnnotation = currentViewAnnotation {
+            viewAnnotationManager.remove(currentViewAnnotation)
+        }
+
+        let options = ViewAnnotationOptions(
+            geometry: Point(coordinate),
+            width: 200,
+            height: 120,
+            allowOverlap: false,
+            anchor: .bottom,
+            offsetY: 12
+        )
+
+        let content = createViewAnnotationContent(for: kiteSpotFields)
+        content.tag = kiteSpotFields.spotId.hashValue
+        
+        do {
+            try viewAnnotationManager.add(content, options: options)
+            currentViewAnnotation = content
+            print("CustomMapViewController: Successfully added view annotation")
+        } catch {
+            print("CustomMapViewController: Error adding view annotation: \(error)")
+        }
     }
     
     func addWindDirectionLayer(with string: String?) {
@@ -222,20 +320,31 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
 
 struct CustomMapViewControllerRepresentable: UIViewControllerRepresentable {
     var selectedImage: UIImage?
-    var tilesetId: String?  // Use tilesetId instead of selectedGeoJSONData
+    var tilesetId: String?
+    var currentTimestamp: Date?
+    var forecastRecords: [String: [Record]]
     
     func makeUIViewController(context: Context) -> CustomMapViewController {
         let controller = CustomMapViewController()
         controller.selectedImage = selectedImage
-        controller.tilesetId = tilesetId  // Pass tilesetId to the controller
+        controller.tilesetId = tilesetId  
+        controller.currentTimestamp = currentTimestamp
+        controller.forecastRecords = forecastRecords
         return controller
     }
     
     func updateUIViewController(_ uiViewController: CustomMapViewController, context: Context) {
+        print("CustomMapViewControllerRepresentable: Updating UI")
         uiViewController.selectedImage = selectedImage
-        uiViewController.tilesetId = tilesetId  // Update tilesetId in the controller
+        uiViewController.tilesetId = tilesetId
+        uiViewController.currentTimestamp = currentTimestamp
+        uiViewController.forecastRecords = forecastRecords
+        print("CustomMapViewControllerRepresentable: Current timestamp: \(String(describing: currentTimestamp))")
+        print("CustomMapViewControllerRepresentable: Forecast records count: \(forecastRecords.count)")
+        uiViewController.updateAnnotations()
     }
 }
+
 
 extension Data {
     func saveToTemporaryDirectory(withFilename filename: String) -> URL? {
@@ -250,4 +359,26 @@ extension Data {
             return nil
         }
     }
+}
+
+private func findMatchingRecord(for timestamp: Date, in records: [Record]) -> Record? {
+    print("CustomMapViewController: Finding matching record for timestamp: \(timestamp)")
+    
+    let dateFormatter = ISO8601DateFormatter()
+    dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    
+    let matchingRecord = records.first { record in
+        if let recordDate = dateFormatter.date(from: record.fields.timestamp) {
+            let isMatch = Calendar.current.isDate(recordDate, equalTo: timestamp, toGranularity: .hour)
+            print("CustomMapViewController: Comparing record date: \(recordDate), isMatch: \(isMatch)")
+            print("CustomMapViewController: Record timestamp string: \(record.fields.timestamp)")
+            return isMatch
+        } else {
+            print("CustomMapViewController: Failed to parse record timestamp: \(record.fields.timestamp)")
+            return false
+        }
+    }
+    
+    print("CustomMapViewController: Matching record found: \(matchingRecord != nil)")
+    return matchingRecord
 }
