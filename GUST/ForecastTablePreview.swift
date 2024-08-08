@@ -3,7 +3,7 @@ import SwiftUI
 
 struct ForecastTable_Previews: PreviewProvider {
     static var previews: some View {
-    let bestWindDirections = ["NE", "E", "SE"]
+    let bestWindDirections = ["N"]
     let lowTide = "Yes"
     let midTide = "Yes"
     let highTide = "No"
@@ -16,8 +16,8 @@ struct ForecastTable_Previews: PreviewProvider {
                     timestamp: "2024-01-15T15:00:00.000Z",
                     windSpeed: 10.0,
                     windGust: 15.0,
-                    windDegrees: 40,
-                    relativeDirection: "offshore",
+                    windDegrees: 1,
+                    relativeDirection: "sideshore",
                     tideDescription: "low",
                     tideHeight: -1.977,
                     tidePracticable: "Yes",
@@ -32,7 +32,7 @@ struct ForecastTable_Previews: PreviewProvider {
                     windSpeed: 10.0,
                     windGust: 15.0,
                     windDegrees: 120,
-                    relativeDirection: "offshore",
+                    relativeDirection: "onshore",
                     tideDescription: "low",
                     tideHeight: -1.977,
                     tidePracticable: "Yes",

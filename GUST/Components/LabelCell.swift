@@ -14,7 +14,7 @@ struct LabelCell: View {
                 icon
                     .resizable()
                     .scaledToFit() // This maintains the aspect ratio
-                    .frame(width: 14) // Set the icon's frame
+                    .frame(width: 14, height: 28) // Set the icon's frame
                     .foregroundColor(.black) // Set the foreground color to black
             }
         }

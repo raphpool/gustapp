@@ -14,7 +14,7 @@ struct TideCell: View {
         // Assuming `TidesView` is your destination view
         NavigationLink(destination: TidesView(spotId: spotId)) {
             Text(capitalizeFirstLetter(string: description))
-                .frame(width: 27) // Fixed width like in your React component
+                .frame(width: 27, height:28) // Fixed width like in your React component
                 .font(.custom("Inter-Regular", size: 11))
                 .foregroundColor(tidePracticable == "No" ? Color.red : Color.black)
                 .border(Color.white, width: 0.5)

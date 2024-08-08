@@ -28,7 +28,7 @@
 		103182DD2C57E8BC00FF299C /* ForecastListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103182DC2C57E8BC00FF299C /* ForecastListViewModel.swift */; };
 		103182DF2C57EB0B00FF299C /* GustSpinner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103182DE2C57EB0B00FF299C /* GustSpinner.swift */; };
 		103182E12C58CF4E00FF299C /* ForecastTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103182E02C58CF4E00FF299C /* ForecastTable.swift */; };
-		103182E32C58D45500FF299C /* Preview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103182E22C58D45500FF299C /* Preview.swift */; };
+		103182E32C58D45500FF299C /* ForecastTablePreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103182E22C58D45500FF299C /* ForecastTablePreview.swift */; };
 		103182E52C5A34AB00FF299C /* SearchOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103182E42C5A34AA00FF299C /* SearchOverlayView.swift */; };
 		103182EC2C5A37FA00FF299C /* SearchBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103182EB2C5A37FA00FF299C /* SearchBar.swift */; };
 		103182EF2C5A3A5100FF299C /* PickerDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103182EE2C5A3A5100FF299C /* PickerDesign.swift */; };
@@ -92,7 +92,7 @@
 		103182DC2C57E8BC00FF299C /* ForecastListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastListViewModel.swift; sourceTree = "<group>"; };
 		103182DE2C57EB0B00FF299C /* GustSpinner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GustSpinner.swift; sourceTree = "<group>"; };
 		103182E02C58CF4E00FF299C /* ForecastTable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastTable.swift; sourceTree = "<group>"; };
-		103182E22C58D45500FF299C /* Preview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preview.swift; sourceTree = "<group>"; };
+		103182E22C58D45500FF299C /* ForecastTablePreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastTablePreview.swift; sourceTree = "<group>"; };
 		103182E42C5A34AA00FF299C /* SearchOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchOverlayView.swift; sourceTree = "<group>"; };
 		103182EB2C5A37FA00FF299C /* SearchBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchBar.swift; sourceTree = "<group>"; };
 		103182EE2C5A3A5100FF299C /* PickerDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PickerDesign.swift; path = GUST/Views/PickerDesign.swift; sourceTree = SOURCE_ROOT; };
@@ -169,7 +169,7 @@
 				103182EA2C5A359000FF299C /* Components */,
 				103182E92C5A357000FF299C /* ViewModels */,
 				103182ED2C5A392500FF299C /* Models */,
-				103182E22C58D45500FF299C /* Preview.swift */,
+				103182E22C58D45500FF299C /* ForecastTablePreview.swift */,
 				1031829C2C57DD1200FF299C /* Assets.xcassets */,
 				1031829E2C57DD1200FF299C /* Preview Content */,
 			);
@@ -424,7 +424,7 @@
 				103182E52C5A34AB00FF299C /* SearchOverlayView.swift in Sources */,
 				1031830E2C5A5E7000FF299C /* ImageDetail.swift in Sources */,
 				103182EC2C5A37FA00FF299C /* SearchBar.swift in Sources */,
-				103182E32C58D45500FF299C /* Preview.swift in Sources */,
+				103182E32C58D45500FF299C /* ForecastTablePreview.swift in Sources */,
 				103182DD2C57E8BC00FF299C /* ForecastListViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -10,9 +10,9 @@ struct ForecastTable: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            // Sticky headers VStack
             VStack(spacing: 0) {
                 LabelCell(icon: Image("Calendar"), text: "Heure", expanded: $expanded)
+                    .frame(height: 50)
                 LabelCell(icon: Image("Wind"), text: "Vitesse", expanded: $expanded)
                 LabelCell(icon: Image("Wind"), text: "Rafales", expanded: $expanded)
                 LabelCell(icon: Image("Earth"), text: "Modèles", expanded: $expanded)
@@ -23,7 +23,6 @@ struct ForecastTable: View {
             }
             .background(Color.gray.opacity(0.2))
             
-            // Scrollable content
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 0) {
                     ForEach(records, id: \.fields.timestamp) { record in
@@ -51,18 +50,16 @@ struct ForecastColumn: View {
     var body: some View {
         VStack(spacing: 0) {
             TimestampCell(timestamp: record.fields.timestamp)
-                .frame(height: 50)
             
             CellContent(content: "\(Int(record.fields.windSpeed))", color: windColor(record.fields.windSpeed))
             CellContent(content: "\(Int(record.fields.windGust))", color: windColor(record.fields.windGust))
             CellContent(content: modelAbbreviation(record.fields.model), color: .gray.opacity(0.2))
 
-            WindDirectionCell(degrees: Double(record.fields.windDegrees), bestWindDirection: bestWindDirection)
+            WindDirectionCell(degrees: record.fields.windDegrees, bestWindDirection: bestWindDirection)
                 .frame(width: 27, height: 28)
             
-            CellContent(content: RelativeWindDirection(rawValue: record.fields.relativeDirection)?.translate() ?? record.fields.relativeDirection,
-                        color: record.fields.relativeDirection == "offshore" ? .red : .black)
-            
+            RelativeDirectionCell(relativeDirection: record.fields.relativeDirection)
+
             TideCell(description: record.fields.tideDescription ?? "",
                      height: record.fields.tideHeight ?? 0,
                      spotId: record.fields.spotId,

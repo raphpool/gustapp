@@ -159,9 +159,10 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
         }
     }
 
-    private func formatWindDirection(degrees: Double) -> String {
+    private func formatWindDirection(degrees: Int) -> String {
         let directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
-        let index = Int((degrees + 11.25).truncatingRemainder(dividingBy: 360) / 22.5)
+        let normalizedDegrees = ((degrees % 360) + 360) % 360
+        let index = Int(round(Double(normalizedDegrees) / 22.5)) % 16
         return directions[index]
     }
     

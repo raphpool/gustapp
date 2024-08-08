@@ -5,7 +5,7 @@ struct RecordFields: Codable {
     let timestamp: String
     let windSpeed: Double
     let windGust: Double
-    let windDegrees: Double
+    let windDegrees: Int
     let relativeDirection: String
     let tideDescription: String?
     let tideHeight: Double?
