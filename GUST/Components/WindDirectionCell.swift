@@ -1,7 +1,7 @@
 import SwiftUI
 
 let windDirections = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
-                      "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
+                      "S", "SSO", "SO", "OSO", "O", "ONO", "NO", "NNO"]
 
 func degreesToDirection(_ degrees: Int) -> String {
     let normalizedDegrees = ((degrees % 360) + 360) % 360
