@@ -8,61 +8,128 @@ class KiteSpotAnnotationView: UIView {
     private let speedLabel = UILabel()
     private let arrowImageView = UIImageView()
     private let directionLabel = UILabel()
-
+    private let tideLabel = UILabel()
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupViews()
     }
-
+    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
     private func setupViews() {
         backgroundColor = .white
         layer.cornerRadius = 13
         clipsToBounds = true
-
-        [nameLabel, speedLabel, arrowImageView, directionLabel].forEach { addSubview($0) }
-
+        
+        [nameLabel, speedLabel, arrowImageView, directionLabel, tideLabel].forEach { addSubview($0) }
+        
         nameLabel.font = .systemFont(ofSize: 16, weight: .semibold)
         nameLabel.textAlignment = .left
         nameLabel.numberOfLines = 1
-
+        
         speedLabel.font = .systemFont(ofSize: 14, weight: .regular)
         speedLabel.textAlignment = .left
         speedLabel.numberOfLines = 1
-
+        
         arrowImageView.contentMode = .scaleAspectFit
         arrowImageView.image = UIImage(named: "Arrow")?.withRenderingMode(.alwaysTemplate)
-
+        
         directionLabel.font = .systemFont(ofSize: 14, weight: .regular)
         directionLabel.textAlignment = .right
         directionLabel.numberOfLines = 1
-
-        layoutViews()
+        
+        tideLabel.font = .systemFont(ofSize: 14, weight: .regular)
+        tideLabel.textAlignment = .left
+        tideLabel.numberOfLines = 1
     }
-
-    private func layoutViews() {
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        let hasTides = !tideLabel.isHidden
+        let height: CGFloat = hasTides ? 90 : 60 // Adjust these values as needed
+        
         nameLabel.frame = CGRect(x: 8, y: 5, width: frame.width - 16, height: 25)
         speedLabel.frame = CGRect(x: 8, y: 30, width: frame.width / 2 - 14, height: 25)
-        arrowImageView.frame = CGRect(x: frame.width / 2 - 18, y: 32, width: 20, height: 20)
+        arrowImageView.frame = CGRect(x: frame.width / 2 - 18, y: 32, width: 25, height: 25)
         directionLabel.frame = CGRect(x: frame.width / 2 - 6, y: 30, width: frame.width / 2 - 6, height: 25)
+        
+        if hasTides {
+            tideLabel.frame = CGRect(x: 8, y: 60, width: frame.width - 16, height: 25)
+        }
+        
+        frame.size.height = height
     }
-
-    func configure(with kiteSpot: KiteSpotFields, windSpeed: String, windGust: String, windDirection: String, windDegrees: Int, relativeDirection: String, isBestWindDirection: Bool) {
+    
+    func configure(with kiteSpot: KiteSpotFields,
+                   windSpeed: String,
+                   windGust: String,
+                   windDirection: String,
+                   windDegrees: Int,
+                   relativeDirection: String,
+                   isBestWindDirection: Bool,
+                   tideDescription: String?,
+                   lowTide: String,
+                   midTide: String,
+                   highTide: String,
+                   hasTides: Bool) {
         nameLabel.text = kiteSpot.spotName
         speedLabel.text = "\(windSpeed) / \(windGust) knots"
         directionLabel.text = "(\(windDirection) / \(relativeDirection))"
-
+        
         let directionColor: UIColor = isBestWindDirection ? .green : .black
         directionLabel.textColor = directionColor
         arrowImageView.tintColor = directionColor
-
-        // Rotate the arrow image using windDegrees
+        
         arrowImageView.transform = CGAffineTransform(rotationAngle: CGFloat(windDegrees) * .pi / 180 - .pi / 2)
+        
+        if hasTides, let tideDescription = tideDescription {
+            let tidePracticable = practicableTide(for: tideDescription, lowTide: lowTide, midTide: midTide, highTide: highTide)
+            let frenchTideDescription = translateTideDescription(tideDescription)
+            tideLabel.text = frenchTideDescription
+            tideLabel.textColor = tidePracticable == "No" ? .red : .black
+            tideLabel.isHidden = false
+        } else {
+            tideLabel.isHidden = true
+        }
+        
+        setNeedsLayout()
+    }
+    
+    private func translateTideDescription(_ description: String) -> String {
+        switch description.lowercased() {
+        case "low":
+            return "Marée basse"
+        case "mid":
+            return "Marée intermédiaire"
+        case "high":
+            return "Marée haute"
+        default:
+            return description
+        }
+    }
+    
+    private func practicableTide(for description: String, lowTide: String, midTide: String, highTide: String) -> String {
+        switch description {
+        case "low":
+            return lowTide
+        case "mid":
+            return midTide
+        case "high":
+            return highTide
+        default:
+            return ""
+        }
+    }
+    
+    private func capitalizeFirstLetter(string: String) -> String {
+        return string.prefix(1).uppercased() + string.dropFirst()
     }
 }
+
 
 class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
     var mapView: MapView!
@@ -80,7 +147,7 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
     var forecastRecords: [String: [Record]] = [:]
     private var bottomSheetViewController: UIHostingController<SpotDetailBottomSheet>?
     private var viewAnnotationManager: ViewAnnotationManager!
-
+    
     private var cancelables = Set<AnyCancelable>()
     private var pointAnnotationManager: PointAnnotationManager!
     private var spotFetcher = SpotFetcher()
@@ -88,9 +155,9 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
     private var annotationToKiteSpotMap: [String: String] = [:]
     private var currentViewAnnotation: UIView?
     private var selectedSpot: KiteSpotFields?
-
-
-
+    
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -104,7 +171,7 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
         pointAnnotationManager = mapView.annotations.makePointAnnotationManager()
         pointAnnotationManager.delegate = self
         viewAnnotationManager = mapView.viewAnnotations
-
+        
         fetchAndAddKiteSpots()
     }
     
@@ -156,111 +223,78 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
     // Annotation view
     
     private func configureAnnotationView(_ annotationView: KiteSpotAnnotationView, for kiteSpotFields: KiteSpotFields) {
-            if let currentTimestamp = currentTimestamp,
-               let records = forecastRecords[kiteSpotFields.spotId],
-               let matchingRecord = findMatchingRecord(for: currentTimestamp, in: records) {
-                let windSpeed = String(format: "%.0f", matchingRecord.fields.windSpeed)
-                let windGust = String(format: "%.0f", matchingRecord.fields.windGust)
-                let windDegrees = matchingRecord.fields.windDegrees
-                let windDirection = formatWindDirection(degrees: matchingRecord.fields.windDegrees)
-                let relativeDirection = RelativeWindDirection(rawValue: matchingRecord.fields.relativeDirection)?.translate() ?? matchingRecord.fields.relativeDirection
-                
-                let isBestWindDirection = kiteSpotFields.bestWindDirection?.contains(windDirection) ?? false
-                
-                annotationView.configure(with: kiteSpotFields,
-                                         windSpeed: windSpeed,
-                                         windGust: windGust,
-                                         windDirection: windDirection,
-                                         windDegrees: windDegrees,
-                                         relativeDirection: relativeDirection,
-                                         isBestWindDirection: isBestWindDirection)
-            } else {
-                annotationView.configure(with: kiteSpotFields,
-                                         windSpeed: "N/A",
-                                         windGust: "N/A",
-                                         windDirection: "N/A",
-                                         windDegrees: 0,
-                                         relativeDirection: "N/A",
-                                         isBestWindDirection: false)
-            }
-
-            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleAnnotationTap(_:)))
-            annotationView.addGestureRecognizer(tapGesture)
-            annotationView.tag = kiteSpotFields.spotId.hashValue
+        if let currentTimestamp = currentTimestamp,
+           let records = forecastRecords[kiteSpotFields.spotId],
+           let matchingRecord = findMatchingRecord(for: currentTimestamp, in: records) {
+            let windSpeed = String(format: "%.0f", matchingRecord.fields.windSpeed)
+            let windGust = String(format: "%.0f", matchingRecord.fields.windGust)
+            let windDegrees = matchingRecord.fields.windDegrees
+            let windDirection = formatWindDirection(degrees: matchingRecord.fields.windDegrees)
+            let relativeDirection = RelativeWindDirection(rawValue: matchingRecord.fields.relativeDirection)?.translate() ?? matchingRecord.fields.relativeDirection
+            
+            let isBestWindDirection = kiteSpotFields.bestWindDirection?.contains(windDirection) ?? false
+            
+            let tideDescription = matchingRecord.fields.tideDescription
+            let hasTides = kiteSpotFields.hasTides == "Yes"
+            
+            annotationView.configure(with: kiteSpotFields,
+                                     windSpeed: windSpeed,
+                                     windGust: windGust,
+                                     windDirection: windDirection,
+                                     windDegrees: windDegrees,
+                                     relativeDirection: relativeDirection,
+                                     isBestWindDirection: isBestWindDirection,
+                                     tideDescription: tideDescription,
+                                     lowTide: kiteSpotFields.lowTide ?? "No",
+                                     midTide: kiteSpotFields.midTide ?? "No",
+                                     highTide: kiteSpotFields.highTide ?? "No",
+                                     hasTides: hasTides)
+        } else {
+            annotationView.configure(with: kiteSpotFields,
+                                     windSpeed: "N/A",
+                                     windGust: "N/A",
+                                     windDirection: "N/A",
+                                     windDegrees: 0,
+                                     relativeDirection: "N/A",
+                                     isBestWindDirection: false,
+                                     tideDescription: nil,
+                                     lowTide: "No",
+                                     midTide: "No",
+                                     highTide: "No",
+                                     hasTides: false)
         }
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleAnnotationTap(_:)))
+        annotationView.addGestureRecognizer(tapGesture)
+        annotationView.tag = kiteSpotFields.spotId.hashValue
+    }
     
     private func addViewAnnotation(at coordinate: CLLocationCoordinate2D, for kiteSpotFields: KiteSpotFields) {
-            print("CustomMapViewController: Adding view annotation for spot: \(kiteSpotFields.spotName ?? "Unknown")")
-            
-            // Remove existing view annotation if any
-            if let currentViewAnnotation = currentViewAnnotation {
-                mapView.viewAnnotations.remove(currentViewAnnotation)
-            }
-
-            let annotationView = KiteSpotAnnotationView(frame: CGRect(x: 0, y: 0, width: 235, height: 60))
-            configureAnnotationView(annotationView, for: kiteSpotFields)
-
-            let options = ViewAnnotationOptions(
-                geometry: Point(coordinate),
-                width: 235,
-                height: 60,
-                allowOverlap: false,
-                anchor: .bottom
-            )
-            
-            do {
-                try mapView.viewAnnotations.add(annotationView, options: options)
-                currentViewAnnotation = annotationView
-                print("CustomMapViewController: Successfully added view annotation")
-            } catch {
-                print("CustomMapViewController: Error adding view annotation: \(error)")
-            }
-        }
-
-
-    // End of annotation view
-
-
-    @objc private func handleAnnotationTap(_ gesture: UITapGestureRecognizer) {
-        guard let containerView = gesture.view else {
-            print("Failed to get container view")
-            return
+        print("CustomMapViewController: Adding view annotation for spot: \(kiteSpotFields.spotName ?? "Unknown")")
+        
+        // Remove existing view annotation if any
+        if let currentViewAnnotation = currentViewAnnotation {
+            mapView.viewAnnotations.remove(currentViewAnnotation)
         }
         
-        let tappedSpotId = containerView.tag
+        let annotationView = KiteSpotAnnotationView(frame: CGRect(x: 0, y: 0, width: 235, height: 100))
+        configureAnnotationView(annotationView, for: kiteSpotFields)
         
-        if let kiteSpot = kiteSpots.first(where: { $0.spotId.hashValue == tappedSpotId }) {
-            print("Tapped on spot: \(kiteSpot.spotName ?? "Unknown"), spotId: \(kiteSpot.spotId)")
-            selectedSpot = kiteSpot
-            print("Set selectedSpot to \(kiteSpot.spotName ?? "Unknown")")
-            presentBottomSheet(for: kiteSpot)
-        } else {
-            print("Failed to find kiteSpot for tapped view with tag: \(tappedSpotId)")
-        }
-    }
-
-    private func formatWindDirection(degrees: Int) -> String {
-        let directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSO", "SO", "OSO", "O", "ONO", "NO", "NNO"]
-        let normalizedDegrees = ((degrees % 360) + 360) % 360
-        let index = Int(round(Double(normalizedDegrees) / 22.5)) % 16
-        return directions[index]
-    }
-    
-    private func presentBottomSheet(for kiteSpot: KiteSpotFields) {
-        print("Presenting bottom sheet for spot: \(kiteSpot.spotName ?? "Unknown")")
-        let bottomSheetView = SpotDetailBottomSheet(kiteSpot: kiteSpot)
-        let hostingController = UIHostingController(rootView: bottomSheetView)
+        let options = ViewAnnotationOptions(
+            geometry: Point(coordinate),
+            width: 235,
+            height: 100,
+            allowOverlap: false,
+            anchor: .bottom
+        )
         
-        if let sheet = hostingController.sheetPresentationController {
-            sheet.detents = [.large()]
-            sheet.prefersGrabberVisible = true
-            sheet.preferredCornerRadius = 20
+        do {
+            try mapView.viewAnnotations.add(annotationView, options: options)
+            currentViewAnnotation = annotationView
+            print("CustomMapViewController: Successfully added view annotation")
+        } catch {
+            print("CustomMapViewController: Error adding view annotation: \(error)")
         }
-        
-        present(hostingController, animated: true) {
-            print("Bottom sheet presented successfully for spot: \(kiteSpot.spotName ?? "Unknown")")
-        }
-        bottomSheetViewController = hostingController
     }
     
     func updateAnnotations() {
@@ -289,13 +323,21 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
                 
                 let isBestWindDirection = kiteSpotFields.bestWindDirection?.contains(windDirection) ?? false
                 
+                let tideDescription = matchingRecord.fields.tideDescription
+                let hasTides = kiteSpotFields.hasTides == "Yes"
+                
                 annotationView.configure(with: kiteSpotFields,
                                          windSpeed: windSpeed,
                                          windGust: windGust,
                                          windDirection: windDirection,
                                          windDegrees: windDegrees,
                                          relativeDirection: relativeDirection,
-                                         isBestWindDirection: isBestWindDirection)
+                                         isBestWindDirection: isBestWindDirection,
+                                         tideDescription: tideDescription,
+                                         lowTide: kiteSpotFields.lowTide ?? "No",
+                                         midTide: kiteSpotFields.midTide ?? "No",
+                                         highTide: kiteSpotFields.highTide ?? "No",
+                                         hasTides: hasTides)
             } else {
                 annotationView.configure(with: kiteSpotFields,
                                          windSpeed: "N/A",
@@ -303,11 +345,61 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
                                          windDirection: "N/A",
                                          windDegrees: 0,
                                          relativeDirection: "N/A",
-                                         isBestWindDirection: false)
+                                         isBestWindDirection: false,
+                                         tideDescription: nil,
+                                         lowTide: "No",
+                                         midTide: "No",
+                                         highTide: "No",
+                                         hasTides: false)
             }
         }
     }
-
+    
+    
+    // End of annotation view
+    
+    
+    @objc private func handleAnnotationTap(_ gesture: UITapGestureRecognizer) {
+        guard let containerView = gesture.view else {
+            print("Failed to get container view")
+            return
+        }
+        
+        let tappedSpotId = containerView.tag
+        
+        if let kiteSpot = kiteSpots.first(where: { $0.spotId.hashValue == tappedSpotId }) {
+            print("Tapped on spot: \(kiteSpot.spotName ?? "Unknown"), spotId: \(kiteSpot.spotId)")
+            selectedSpot = kiteSpot
+            print("Set selectedSpot to \(kiteSpot.spotName ?? "Unknown")")
+            presentBottomSheet(for: kiteSpot)
+        } else {
+            print("Failed to find kiteSpot for tapped view with tag: \(tappedSpotId)")
+        }
+    }
+    
+    private func formatWindDirection(degrees: Int) -> String {
+        let directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSO", "SO", "OSO", "O", "ONO", "NO", "NNO"]
+        let normalizedDegrees = ((degrees % 360) + 360) % 360
+        let index = Int(round(Double(normalizedDegrees) / 22.5)) % 16
+        return directions[index]
+    }
+    
+    private func presentBottomSheet(for kiteSpot: KiteSpotFields) {
+        print("Presenting bottom sheet for spot: \(kiteSpot.spotName ?? "Unknown")")
+        let bottomSheetView = SpotDetailBottomSheet(kiteSpot: kiteSpot)
+        let hostingController = UIHostingController(rootView: bottomSheetView)
+        
+        if let sheet = hostingController.sheetPresentationController {
+            sheet.detents = [.large()]
+            sheet.prefersGrabberVisible = true
+            sheet.preferredCornerRadius = 20
+        }
+        
+        present(hostingController, animated: true) {
+            print("Bottom sheet presented successfully for spot: \(kiteSpot.spotName ?? "Unknown")")
+        }
+        bottomSheetViewController = hostingController
+    }
     
     
     
@@ -407,7 +499,7 @@ struct CustomMapViewControllerRepresentable: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> CustomMapViewController {
         let controller = CustomMapViewController()
         controller.selectedImage = selectedImage
-        controller.tilesetId = tilesetId  
+        controller.tilesetId = tilesetId
         controller.currentTimestamp = currentTimestamp
         controller.forecastRecords = forecastRecords
         return controller
