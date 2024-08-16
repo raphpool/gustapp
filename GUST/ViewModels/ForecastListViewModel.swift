@@ -34,7 +34,7 @@ class ForecastListViewModel: ObservableObject {
     private let numberOfSpotsToLoad = 4
     
     func fetchForecasts() async {
-        
+        await MainActor.run { self.isLoadingForecasts = true }
         do {
             let allSpots = try await SpotFetcher().fetchKiteSpots()
             let spotIds = allSpots.map { $0.spotId }
@@ -45,9 +45,11 @@ class ForecastListViewModel: ObservableObject {
             
             await MainActor.run {
                 self.forecasts = groupedRecords
+                self.isLoadingForecasts = false
             }
         } catch {
             print("Error fetching forecasts: \(error)")
+            await MainActor.run { self.isLoadingForecasts = false }
         }
     }
     

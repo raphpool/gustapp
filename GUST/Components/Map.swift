@@ -9,6 +9,9 @@ class KiteSpotAnnotationView: UIView {
     private let arrowImageView = UIImageView()
     private let directionLabel = UILabel()
     private let tideLabel = UILabel()
+    private let activityIndicator = UIActivityIndicatorView(style: .medium)
+    private let errorLabel = UILabel()
+    
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -17,6 +20,26 @@ class KiteSpotAnnotationView: UIView {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    func showLoadingIndicator() {
+        subviews.forEach { $0.isHidden = true }
+        addSubview(activityIndicator)
+        activityIndicator.center = CGPoint(x: bounds.width / 2, y: 30)
+        activityIndicator.startAnimating()
+    }
+    
+    func hideLoadingIndicator() {
+        activityIndicator.stopAnimating()
+        activityIndicator.removeFromSuperview()
+        subviews.forEach { $0.isHidden = false }
+    }
+    
+    func showErrorMessage(_ message: String) {
+        hideLoadingIndicator()
+        // You might want to add a label for error messages if you haven't already
+        errorLabel.text = message
+        errorLabel.isHidden = false
     }
     
     private func setupViews() {
@@ -44,6 +67,12 @@ class KiteSpotAnnotationView: UIView {
         tideLabel.font = .systemFont(ofSize: 14, weight: .regular)
         tideLabel.textAlignment = .left
         tideLabel.numberOfLines = 1
+        
+        errorLabel.textColor = .red
+        errorLabel.font = .systemFont(ofSize: 12)
+        errorLabel.textAlignment = .center
+        errorLabel.numberOfLines = 0
+        errorLabel.isHidden = true
     }
     
     override func layoutSubviews() {
@@ -60,6 +89,7 @@ class KiteSpotAnnotationView: UIView {
         if hasTides {
             tideLabel.frame = CGRect(x: 8, y: 60, width: frame.width - 16, height: 25)
         }
+        errorLabel.frame = CGRect(x: 8, y: bounds.height - 30, width: bounds.width - 16, height: 25)
         
         frame.size.height = height
     }
@@ -76,6 +106,7 @@ class KiteSpotAnnotationView: UIView {
                    midTide: String,
                    highTide: String,
                    hasTides: Bool) {
+        hideLoadingIndicator()
         nameLabel.text = kiteSpot.spotName
         speedLabel.text = "\(windSpeed) / \(windGust) knots"
         directionLabel.text = "(\(windDirection) / \(relativeDirection))"
@@ -155,6 +186,12 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
     private var annotationToKiteSpotMap: [String: String] = [:]
     private var currentViewAnnotation: UIView?
     private var selectedSpot: KiteSpotFields?
+    private var forecastFetcher = ForecastFetcher()
+    var isLoadingForecasts: Bool = false {
+        didSet {
+            updateAnnotations()
+        }
+    }
     
     
     
@@ -278,7 +315,12 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
         }
         
         let annotationView = KiteSpotAnnotationView(frame: CGRect(x: 0, y: 0, width: 235, height: 100))
-        configureAnnotationView(annotationView, for: kiteSpotFields)
+        
+        if isLoadingForecasts {
+            annotationView.showLoadingIndicator()
+        } else {
+            configureAnnotationView(annotationView, for: kiteSpotFields)
+        }
         
         let options = ViewAnnotationOptions(
             geometry: Point(coordinate),
@@ -292,15 +334,48 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
             try mapView.viewAnnotations.add(annotationView, options: options)
             currentViewAnnotation = annotationView
             print("CustomMapViewController: Successfully added view annotation")
+            
+            if isLoadingForecasts {
+                Task {
+                    do {
+                        while isLoadingForecasts {
+                            try await Task.sleep(nanoseconds: 100_000_000) // 0.1 second
+                        }
+                        await MainActor.run {
+                            self.configureAnnotationView(annotationView, for: kiteSpotFields)
+                        }
+                    } catch {
+                        print("Error while waiting for forecast data: \(error)")
+                        await MainActor.run {
+                            self.handleLoadingError(annotationView: annotationView, error: error)
+                        }
+                    }
+                }
+            }
         } catch {
             print("CustomMapViewController: Error adding view annotation: \(error)")
+            handleLoadingError(annotationView: annotationView, error: error)
         }
     }
+    
+    
+    private func handleLoadingError(annotationView: KiteSpotAnnotationView, error: Error) {
+        annotationView.showErrorMessage("Failed to load data")
+        print("Error loading forecast data: \(error)")
+    }
+    
     
     func updateAnnotations() {
         print("CustomMapViewController: Updating annotations")
         print("CustomMapViewController: Current timestamp: \(String(describing: currentTimestamp))")
         print("CustomMapViewController: Forecast records count: \(forecastRecords.count)")
+        print("CustomMapViewController: Is loading forecasts: \(isLoadingForecasts)")
+        
+        guard let mapView = mapView else {
+            print("CustomMapViewController: MapView is not initialized yet")
+            return
+        }
+        
         print("CustomMapViewController: Number of annotations: \(mapView.viewAnnotations.annotations.count)")
         
         for (annotationView, _) in mapView.viewAnnotations.annotations {
@@ -312,45 +387,49 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
             
             print("CustomMapViewController: Updating annotation for spot: \(kiteSpotFields.spotName ?? "Unknown")")
             
-            if let currentTimestamp = currentTimestamp,
-               let records = forecastRecords[kiteSpotFields.spotId],
-               let matchingRecord = findMatchingRecord(for: currentTimestamp, in: records) {
-                let windSpeed = String(format: "%.0f", matchingRecord.fields.windSpeed)
-                let windGust = String(format: "%.0f", matchingRecord.fields.windGust)
-                let windDegrees = matchingRecord.fields.windDegrees
-                let windDirection = formatWindDirection(degrees: matchingRecord.fields.windDegrees)
-                let relativeDirection = RelativeWindDirection(rawValue: matchingRecord.fields.relativeDirection)?.translate() ?? matchingRecord.fields.relativeDirection
-                
-                let isBestWindDirection = kiteSpotFields.bestWindDirection?.contains(windDirection) ?? false
-                
-                let tideDescription = matchingRecord.fields.tideDescription
-                let hasTides = kiteSpotFields.hasTides == "Yes"
-                
-                annotationView.configure(with: kiteSpotFields,
-                                         windSpeed: windSpeed,
-                                         windGust: windGust,
-                                         windDirection: windDirection,
-                                         windDegrees: windDegrees,
-                                         relativeDirection: relativeDirection,
-                                         isBestWindDirection: isBestWindDirection,
-                                         tideDescription: tideDescription,
-                                         lowTide: kiteSpotFields.lowTide ?? "No",
-                                         midTide: kiteSpotFields.midTide ?? "No",
-                                         highTide: kiteSpotFields.highTide ?? "No",
-                                         hasTides: hasTides)
+            if isLoadingForecasts {
+                annotationView.showLoadingIndicator()
             } else {
-                annotationView.configure(with: kiteSpotFields,
-                                         windSpeed: "N/A",
-                                         windGust: "N/A",
-                                         windDirection: "N/A",
-                                         windDegrees: 0,
-                                         relativeDirection: "N/A",
-                                         isBestWindDirection: false,
-                                         tideDescription: nil,
-                                         lowTide: "No",
-                                         midTide: "No",
-                                         highTide: "No",
-                                         hasTides: false)
+                if let currentTimestamp = currentTimestamp,
+                   let records = forecastRecords[kiteSpotFields.spotId],
+                   let matchingRecord = findMatchingRecord(for: currentTimestamp, in: records) {
+                    let windSpeed = String(format: "%.0f", matchingRecord.fields.windSpeed)
+                    let windGust = String(format: "%.0f", matchingRecord.fields.windGust)
+                    let windDegrees = matchingRecord.fields.windDegrees
+                    let windDirection = formatWindDirection(degrees: matchingRecord.fields.windDegrees)
+                    let relativeDirection = RelativeWindDirection(rawValue: matchingRecord.fields.relativeDirection)?.translate() ?? matchingRecord.fields.relativeDirection
+                    
+                    let isBestWindDirection = kiteSpotFields.bestWindDirection?.contains(windDirection) ?? false
+                    
+                    let tideDescription = matchingRecord.fields.tideDescription
+                    let hasTides = kiteSpotFields.hasTides == "Yes"
+                    
+                    annotationView.configure(with: kiteSpotFields,
+                                             windSpeed: windSpeed,
+                                             windGust: windGust,
+                                             windDirection: windDirection,
+                                             windDegrees: windDegrees,
+                                             relativeDirection: relativeDirection,
+                                             isBestWindDirection: isBestWindDirection,
+                                             tideDescription: tideDescription,
+                                             lowTide: kiteSpotFields.lowTide ?? "No",
+                                             midTide: kiteSpotFields.midTide ?? "No",
+                                             highTide: kiteSpotFields.highTide ?? "No",
+                                             hasTides: hasTides)
+                } else {
+                    annotationView.configure(with: kiteSpotFields,
+                                             windSpeed: "N/A",
+                                             windGust: "N/A",
+                                             windDirection: "N/A",
+                                             windDegrees: 0,
+                                             relativeDirection: "N/A",
+                                             isBestWindDirection: false,
+                                             tideDescription: nil,
+                                             lowTide: "No",
+                                             midTide: "No",
+                                             highTide: "No",
+                                             hasTides: false)
+                }
             }
         }
     }
@@ -495,6 +574,7 @@ struct CustomMapViewControllerRepresentable: UIViewControllerRepresentable {
     var tilesetId: String?
     var currentTimestamp: Date?
     var forecastRecords: [String: [Record]]
+    var isLoadingForecasts: Bool
     
     func makeUIViewController(context: Context) -> CustomMapViewController {
         let controller = CustomMapViewController()
@@ -502,6 +582,7 @@ struct CustomMapViewControllerRepresentable: UIViewControllerRepresentable {
         controller.tilesetId = tilesetId
         controller.currentTimestamp = currentTimestamp
         controller.forecastRecords = forecastRecords
+        controller.isLoadingForecasts = isLoadingForecasts
         return controller
     }
     
@@ -513,6 +594,7 @@ struct CustomMapViewControllerRepresentable: UIViewControllerRepresentable {
         uiViewController.forecastRecords = forecastRecords
         print("CustomMapViewControllerRepresentable: Current timestamp: \(String(describing: currentTimestamp))")
         print("CustomMapViewControllerRepresentable: Forecast records count: \(forecastRecords.count)")
+        uiViewController.isLoadingForecasts = isLoadingForecasts
         uiViewController.updateAnnotations()
     }
 }

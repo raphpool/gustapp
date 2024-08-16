@@ -8,16 +8,17 @@ struct ContentView: View {
     @State private var isSearchSheetPresented = false
     @State private var currentTimestamp: Date? = nil
     @StateObject private var forecastListViewModel = ForecastListViewModel()
-
+    
     
     var body: some View {
         ZStack(alignment: .bottom) {
             CustomMapViewControllerRepresentable(
-                            selectedImage: selectedImage,
-                            tilesetId: selectedTilesetId,
-                            currentTimestamp: currentTimestamp,
-                            forecastRecords: forecastListViewModel.forecasts
-                        )                .edgesIgnoringSafeArea(.all)
+                selectedImage: selectedImage,
+                tilesetId: selectedTilesetId,
+                currentTimestamp: currentTimestamp,
+                forecastRecords: forecastListViewModel.forecasts,
+                isLoadingForecasts: forecastListViewModel.isLoadingForecasts
+            )                .edgesIgnoringSafeArea(.all)
             
             VStack {
                 Button(action: {
@@ -43,10 +44,10 @@ struct ContentView: View {
                         self.selectedTilesetId = tilesetId
                         self.currentTimestamp = extractTimestamp(from: pngFile.fullName)
                         if let timestamp = self.currentTimestamp {
-                                    print("Current timestamp set to: \(timestamp)")
-                                } else {
-                                    print("Failed to extract timestamp from: \(pngFile.fullName)")
-                                }
+                            print("Current timestamp set to: \(timestamp)")
+                        } else {
+                            print("Failed to extract timestamp from: \(pngFile.fullName)")
+                        }
                     }
                 }
                 .frame(height: 150)
@@ -68,8 +69,8 @@ struct ContentView: View {
                 }
             }
             Task {
-                            await forecastListViewModel.fetchForecasts()
-                        }
+                await forecastListViewModel.fetchForecasts()
+            }
         }
     }
     
