@@ -367,6 +367,7 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
     
     func updateAnnotations() {
         print("CustomMapViewController: Updating annotations")
+        let startTime = Date()
         print("CustomMapViewController: Current timestamp: \(String(describing: currentTimestamp))")
         print("CustomMapViewController: Forecast records count: \(forecastRecords.count)")
         print("CustomMapViewController: Is loading forecasts: \(isLoadingForecasts)")
@@ -386,7 +387,7 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
             }
             
             print("CustomMapViewController: Updating annotation for spot: \(kiteSpotFields.spotName ?? "Unknown")")
-            
+            let configureStartTime = Date()
             if isLoadingForecasts {
                 annotationView.showLoadingIndicator()
             } else {
@@ -430,7 +431,9 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
                                              highTide: "No",
                                              hasTides: false)
                 }
+                print("CustomMapViewController: Configured annotation in \(Date().timeIntervalSince(configureStartTime)) seconds")
             }
+            print("CustomMapViewController: All annotations updated in \(Date().timeIntervalSince(startTime)) seconds")
         }
     }
     
@@ -588,6 +591,7 @@ struct CustomMapViewControllerRepresentable: UIViewControllerRepresentable {
     
     func updateUIViewController(_ uiViewController: CustomMapViewController, context: Context) {
         print("CustomMapViewControllerRepresentable: Updating UI")
+        let startTime = Date()
         uiViewController.selectedImage = selectedImage
         uiViewController.tilesetId = tilesetId
         uiViewController.currentTimestamp = currentTimestamp
@@ -596,6 +600,7 @@ struct CustomMapViewControllerRepresentable: UIViewControllerRepresentable {
         print("CustomMapViewControllerRepresentable: Forecast records count: \(forecastRecords.count)")
         uiViewController.isLoadingForecasts = isLoadingForecasts
         uiViewController.updateAnnotations()
+        print("CustomMapViewControllerRepresentable: UI updated in \(Date().timeIntervalSince(startTime)) seconds")
     }
 }
 

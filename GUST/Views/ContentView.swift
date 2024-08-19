@@ -60,16 +60,23 @@ struct ContentView: View {
                 .presentationDragIndicator(.visible)
         }
         .onAppear {
+            print("ContentView: onAppear triggered")
+            let startTime = Date()
             Task {
                 do {
+                    print("ContentView: Starting to fetch PNG files")
                     let pngFiles = try await listPNGFilesInProcessedFolder(bucket: "gustlayers", folder: "processed/")
                     self.pngFiles = pngFiles.map { PNGFile(fullName: $0) }
+                    print("ContentView: PNG files fetched in \(Date().timeIntervalSince(startTime)) seconds")
                 } catch {
-                    print("Failed to fetch files: \(error)")
+                    print("ContentView: Failed to fetch files: \(error)")
                 }
             }
             Task {
+                print("ContentView: Starting to fetch forecasts")
+                let startTime = Date()
                 await forecastListViewModel.fetchForecasts()
+                print("ContentView: Forecasts fetched in \(Date().timeIntervalSince(startTime)) seconds")
             }
         }
     }

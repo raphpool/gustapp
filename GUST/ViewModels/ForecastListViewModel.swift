@@ -34,14 +34,26 @@ class ForecastListViewModel: ObservableObject {
     private let numberOfSpotsToLoad = 4
     
     func fetchForecasts() async {
+        print("ForecastListViewModel: fetchForecasts started")
+        let startTime = Date()
         await MainActor.run { self.isLoadingForecasts = true }
         do {
+            print("ForecastListViewModel: Fetching kite spots")
+            let spotsFetchStartTime = Date()
             let allSpots = try await SpotFetcher().fetchKiteSpots()
+            print("ForecastListViewModel: Kite spots fetched in \(Date().timeIntervalSince(spotsFetchStartTime)) seconds")
             let spotIds = allSpots.map { $0.spotId }
+            print("ForecastListViewModel: Fetching forecast records for \(spotIds.count) spots")
+            let recordsFetchStartTime = Date()
             let records = try await forecastFetcher.fetchAllRecords(spotIds: spotIds)
-            
-            // Group records by spotId
+            print("ForecastListViewModel: Forecast records fetched in \(Date().timeIntervalSince(recordsFetchStartTime)) seconds")
+            print("ForecastListViewModel: Total records fetched: \(records.count)")
+
+            print("ForecastListViewModel: Grouping records")
+            let groupingStartTime = Date()
             let groupedRecords = Dictionary(grouping: records, by: { $0.fields.spotId })
+            print("ForecastListViewModel: Records grouped in \(Date().timeIntervalSince(groupingStartTime)) seconds")
+            print("ForecastListViewModel: Number of spots with records: \(groupedRecords.count)")
             
             await MainActor.run {
                 self.forecasts = groupedRecords
@@ -51,6 +63,7 @@ class ForecastListViewModel: ObservableObject {
             print("Error fetching forecasts: \(error)")
             await MainActor.run { self.isLoadingForecasts = false }
         }
+        print("ForecastListViewModel: fetchForecasts completed in \(Date().timeIntervalSince(startTime)) seconds")
     }
     
     

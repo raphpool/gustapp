@@ -25,15 +25,60 @@ class ForecastFetcher {
     private let airtableAPIKey = "pat3OmyPQeYWYbtan.0ac9c6603660aa5acc4b32f825c32bf4f6d55ed8ca0395cde4ad8a2a083e903a"
     private let airtableBaseID = "app3mlORKoXMPNhYn"
     
-    func fetchAllRecords(spotIds: [String]) async throws -> [Record] {
+    private let session: URLSession
+    
+    init() {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 30
+        config.timeoutIntervalForResource = 300
+        self.session = URLSession(configuration: config)
+    }
+    
+    func fetchAllRecords(spotIds: [String], concurrentFetches: Int = 5) async throws -> [Record] {
+        let startTime = Date()
+        print("ForecastFetcher: Starting to fetch records for \(spotIds.count) spots")
+        
+        let groups = spotIds.chunked(into: concurrentFetches)
+        print("ForecastFetcher: Split into \(groups.count) groups")
+        
+        let results = try await withThrowingTaskGroup(of: [Record].self) { group in
+            for (index, spotIdGroup) in groups.enumerated() {
+                group.addTask {
+                    print("ForecastFetcher: Starting fetch for group \(index + 1)/\(groups.count)")
+                    let groupStartTime = Date()
+                    let records = try await self.fetchRecordsForSpots(spotIds: spotIdGroup)
+                    print("ForecastFetcher: Finished fetch for group \(index + 1)/\(groups.count) in \(Date().timeIntervalSince(groupStartTime)) seconds, fetched \(records.count) records")
+                    return records
+                }
+            }
+            
+            var allRecords: [Record] = []
+            for try await records in group {
+                allRecords.append(contentsOf: records)
+            }
+            return allRecords
+        }
+        
+        print("ForecastFetcher: Finished fetching all records in \(Date().timeIntervalSince(startTime)) seconds")
+        print("ForecastFetcher: Total records fetched: \(results.count)")
+        return results
+    }
+    
+    private func fetchRecordsForSpots(spotIds: [String]) async throws -> [Record] {
         var allRecords: [Record] = []
         var offset: String?
+        var pageCount = 0
+        let fetchStartTime = Date()
         
-        while true {
+        repeat {
+            pageCount += 1
+            let pageStartTime = Date()
+            
             let formula = "OR(\(spotIds.map { "spotId='\($0)'" }.joined(separator: ",")))"
             let encodedFormula = formula.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-            let offsetParam = offset != nil ? "&offset=\(offset!)" : ""
-            let endpoint = "https://api.airtable.com/v0/\(airtableBaseID)/\(tableName)?filterByFormula=\(encodedFormula)\(offsetParam)"
+            let offsetParam = offset.map { "&offset=\($0)" } ?? ""
+            let sortParam = "&sort%5B0%5D%5Bfield%5D=timestamp&sort%5B0%5D%5Bdirection%5D=asc"
+            let endpoint = "https://api.airtable.com/v0/\(airtableBaseID)/\(tableName)?filterByFormula=\(encodedFormula)&pageSize=100\(offsetParam)\(sortParam)"
             
             guard let url = URL(string: endpoint) else {
                 throw URLError(.badURL)
@@ -43,37 +88,40 @@ class ForecastFetcher {
             request.setValue("Bearer \(airtableAPIKey)", forHTTPHeaderField: "Authorization")
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             
-            let (data, response) = try await URLSession.shared.data(for: request)
-            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
-                let decodedResponse = try JSONDecoder().decode(AirtableResponse<Record>.self, from: data)
-                allRecords.append(contentsOf: decodedResponse.records)
-                
-                if let newOffset = decodedResponse.offset {
-                    offset = newOffset
-                } else {
-                    break
-                }
-            } else {
-                let body = String(data: data, encoding: .utf8)
-                print("Server returned status code \((response as? HTTPURLResponse)?.statusCode ?? 0): \(body ?? "No response body")")
+            print("ForecastFetcher: Sending request for page \(pageCount) (Spots: \(spotIds.joined(separator: ", ")))")
+            let requestStartTime = Date()
+            let (data, response) = try await session.data(for: request)
+            print("ForecastFetcher: Received response for page \(pageCount) in \(Date().timeIntervalSince(requestStartTime)) seconds")
+            
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
                 throw URLError(.badServerResponse)
             }
-        }
+            
+            let decodingStartTime = Date()
+            let decodedResponse = try JSONDecoder().decode(AirtableResponse<Record>.self, from: data)
+            print("ForecastFetcher: Decoded response for page \(pageCount) in \(Date().timeIntervalSince(decodingStartTime)) seconds")
+            
+            allRecords.append(contentsOf: decodedResponse.records)
+            offset = decodedResponse.offset
+            
+            print("ForecastFetcher: Fetched \(decodedResponse.records.count) records in page \(pageCount)")
+            print("ForecastFetcher: Total time for page \(pageCount): \(Date().timeIntervalSince(pageStartTime)) seconds")
+            
+        } while offset != nil
         
-        // Here we sort the records before returning them.
-        return sortRecords(allRecords)
+        print("ForecastFetcher: Fetched a total of \(allRecords.count) records for spots \(spotIds.joined(separator: ", ")) in \(pageCount) pages")
+        print("ForecastFetcher: Total fetch time for these spots: \(Date().timeIntervalSince(fetchStartTime)) seconds")
+        
+        return allRecords
     }
-    
-    private func sortRecords(_ records: [Record]) -> [Record] {
-            let dateFormatter = ISO8601DateFormatter()
-            dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-            return records.sorted {
-                guard let date0 = dateFormatter.date(from: $0.fields.timestamp),
-                      let date1 = dateFormatter.date(from: $1.fields.timestamp) else {
-                    print("Error parsing one of the timestamps: \($0.fields.timestamp) or \($1.fields.timestamp)")
-                    return false
-                }
-                return date0 < date1
-            }
+}
+
+
+
+extension Array {
+    func chunked(into size: Int) -> [[Element]] {
+        return stride(from: 0, to: count, by: size).map {
+            Array(self[$0 ..< Swift.min($0 + size, count)])
         }
     }
+}

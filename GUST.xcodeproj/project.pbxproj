@@ -36,7 +36,6 @@
 		103182F32C5A3B2F00FF299C /* InteractiveLine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103182F22C5A3B2F00FF299C /* InteractiveLine.swift */; };
 		103182F52C5A3B3C00FF299C /* SpotPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103182F42C5A3B3C00FF299C /* SpotPage.swift */; };
 		103182F72C5A3B5000FF299C /* SpotPageBottomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103182F62C5A3B5000FF299C /* SpotPageBottomSheet.swift */; };
-		103182F92C5A3C7A00FF299C /* AWSS3Manager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103182F82C5A3C7A00FF299C /* AWSS3Manager.swift */; };
 		103182FC2C5A3D9A00FF299C /* AWSACM in Frameworks */ = {isa = PBXBuildFile; productRef = 103182FB2C5A3D9A00FF299C /* AWSACM */; };
 		103182FE2C5A3D9A00FF299C /* AWSACMPCA in Frameworks */ = {isa = PBXBuildFile; productRef = 103182FD2C5A3D9A00FF299C /* AWSACMPCA */; };
 		103183002C5A3D9A00FF299C /* AWSAPIGateway in Frameworks */ = {isa = PBXBuildFile; productRef = 103182FF2C5A3D9A00FF299C /* AWSAPIGateway */; };
@@ -48,6 +47,7 @@
 		1031830E2C5A5E7000FF299C /* ImageDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1031830D2C5A5E7000FF299C /* ImageDetail.swift */; };
 		103183102C5A5F7900FF299C /* AWSClientRuntime in Frameworks */ = {isa = PBXBuildFile; productRef = 1031830F2C5A5F7900FF299C /* AWSClientRuntime */; };
 		103183122C5B8F6B00FF299C /* ForecastList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103183112C5B8F6B00FF299C /* ForecastList.swift */; };
+		106B6F222C73760500BECE92 /* AWSS3Manager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 106B6F212C73760500BECE92 /* AWSS3Manager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -100,10 +100,10 @@
 		103182F22C5A3B2F00FF299C /* InteractiveLine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractiveLine.swift; sourceTree = "<group>"; };
 		103182F42C5A3B3C00FF299C /* SpotPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotPage.swift; sourceTree = "<group>"; };
 		103182F62C5A3B5000FF299C /* SpotPageBottomSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotPageBottomSheet.swift; sourceTree = "<group>"; };
-		103182F82C5A3C7A00FF299C /* AWSS3Manager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AWSS3Manager.swift; path = GUST/Components/AWSS3Manager.swift; sourceTree = SOURCE_ROOT; };
 		103183082C5A3E5B00FF299C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		1031830D2C5A5E7000FF299C /* ImageDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageDetail.swift; sourceTree = "<group>"; };
 		103183112C5B8F6B00FF299C /* ForecastList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastList.swift; sourceTree = "<group>"; };
+		106B6F212C73760500BECE92 /* AWSS3Manager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AWSS3Manager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -246,7 +246,7 @@
 		103182ED2C5A392500FF299C /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				103182F82C5A3C7A00FF299C /* AWSS3Manager.swift */,
+				106B6F212C73760500BECE92 /* AWSS3Manager.swift */,
 				103182D62C57E45800FF299C /* FetchForecast.swift */,
 				103182D42C57E44B00FF299C /* FetchSpot.swift */,
 				1031830D2C5A5E7000FF299C /* ImageDetail.swift */,
@@ -399,6 +399,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				106B6F222C73760500BECE92 /* AWSS3Manager.swift in Sources */,
 				103182F32C5A3B2F00FF299C /* InteractiveLine.swift in Sources */,
 				103182D32C57E3E200FF299C /* WindDirectionCell.swift in Sources */,
 				1031829B2C57DD0A00FF299C /* ContentView.swift in Sources */,
@@ -409,7 +410,6 @@
 				103182C72C57E34D00FF299C /* ModelCell.swift in Sources */,
 				103182CF2C57E3A900FF299C /* TimestampCell.swift in Sources */,
 				103182992C57DD0A00FF299C /* GUSTApp.swift in Sources */,
-				103182F92C5A3C7A00FF299C /* AWSS3Manager.swift in Sources */,
 				103182D92C57E84D00FF299C /* SearchViewModel.swift in Sources */,
 				103182F12C5A3A7C00FF299C /* Map.swift in Sources */,
 				103182C92C57E36E00FF299C /* RelativeDirectionCell.swift in Sources */,
