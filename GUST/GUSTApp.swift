@@ -1,17 +1,38 @@
-//
-//  GUSTApp.swift
-//  GUST
-//
-//  Created by Raphaël Doulonne on 29/07/2024.
-//
-
 import SwiftUI
 
 @main
 struct GUSTApp: App {
+    @StateObject private var appState = AppState()
+    @StateObject private var forecastListViewModel = ForecastListViewModel()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            Group {
+                if appState.isLoading {
+                    SplashScreenView()
+                } else {
+                    ContentView()
+                        .environmentObject(forecastListViewModel)
+                }
+            }
+            .environmentObject(appState)
+            .onAppear {
+                Task {
+                    await loadInitialData()
+                }
+            }
+        }
+    }
+
+    private func loadInitialData() async {
+        // Fetch forecasts
+        await forecastListViewModel.fetchForecasts()
+        
+        // Perform any other necessary initial data loading here
+        
+        // When all loading is complete, update the app state
+        await MainActor.run {
+            appState.isLoading = false
         }
     }
 }

@@ -7,7 +7,8 @@ struct ContentView: View {
     @State private var selectedTilesetId: String? = nil
     @State private var isSearchSheetPresented = false
     @State private var currentTimestamp: Date? = nil
-    @StateObject private var forecastListViewModel = ForecastListViewModel()
+    @EnvironmentObject var forecastListViewModel: ForecastListViewModel
+    @EnvironmentObject var appState: AppState
     
     
     var body: some View {
@@ -71,12 +72,6 @@ struct ContentView: View {
                 } catch {
                     print("ContentView: Failed to fetch files: \(error)")
                 }
-            }
-            Task {
-                print("ContentView: Starting to fetch forecasts")
-                let startTime = Date()
-                await forecastListViewModel.fetchForecasts()
-                print("ContentView: Forecasts fetched in \(Date().timeIntervalSince(startTime)) seconds")
             }
         }
     }

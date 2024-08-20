@@ -48,6 +48,8 @@
 		103183102C5A5F7900FF299C /* AWSClientRuntime in Frameworks */ = {isa = PBXBuildFile; productRef = 1031830F2C5A5F7900FF299C /* AWSClientRuntime */; };
 		103183122C5B8F6B00FF299C /* ForecastList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103183112C5B8F6B00FF299C /* ForecastList.swift */; };
 		106B6F222C73760500BECE92 /* AWSS3Manager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 106B6F212C73760500BECE92 /* AWSS3Manager.swift */; };
+		106B6F242C737FB900BECE92 /* SplashScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 106B6F232C737FB900BECE92 /* SplashScreenView.swift */; };
+		106B6F262C747AAD00BECE92 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 106B6F252C747AAD00BECE92 /* AppState.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -104,6 +106,8 @@
 		1031830D2C5A5E7000FF299C /* ImageDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageDetail.swift; sourceTree = "<group>"; };
 		103183112C5B8F6B00FF299C /* ForecastList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastList.swift; sourceTree = "<group>"; };
 		106B6F212C73760500BECE92 /* AWSS3Manager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AWSS3Manager.swift; sourceTree = "<group>"; };
+		106B6F232C737FB900BECE92 /* SplashScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreenView.swift; sourceTree = "<group>"; };
+		106B6F252C747AAD00BECE92 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -171,6 +175,7 @@
 				103182ED2C5A392500FF299C /* Models */,
 				103182E22C58D45500FF299C /* ForecastTablePreview.swift */,
 				1031829C2C57DD1200FF299C /* Assets.xcassets */,
+				106B6F252C747AAD00BECE92 /* AppState.swift */,
 				1031829E2C57DD1200FF299C /* Preview Content */,
 			);
 			path = GUST;
@@ -205,6 +210,7 @@
 			isa = PBXGroup;
 			children = (
 				1031829A2C57DD0A00FF299C /* ContentView.swift */,
+				106B6F232C737FB900BECE92 /* SplashScreenView.swift */,
 				103182E42C5A34AA00FF299C /* SearchOverlayView.swift */,
 				103182F62C5A3B5000FF299C /* SpotPageBottomSheet.swift */,
 			);
@@ -406,6 +412,7 @@
 				103182D12C57E3CA00FF299C /* WindCell.swift in Sources */,
 				103182CB2C57E38500FF299C /* TideExtremeCell.swift in Sources */,
 				103182C52C57E33300FF299C /* LabelCell.swift in Sources */,
+				106B6F242C737FB900BECE92 /* SplashScreenView.swift in Sources */,
 				103182EF2C5A3A5100FF299C /* PickerDesign.swift in Sources */,
 				103182C72C57E34D00FF299C /* ModelCell.swift in Sources */,
 				103182CF2C57E3A900FF299C /* TimestampCell.swift in Sources */,
@@ -423,6 +430,7 @@
 				103182DF2C57EB0B00FF299C /* GustSpinner.swift in Sources */,
 				103182E52C5A34AB00FF299C /* SearchOverlayView.swift in Sources */,
 				1031830E2C5A5E7000FF299C /* ImageDetail.swift in Sources */,
+				106B6F262C747AAD00BECE92 /* AppState.swift in Sources */,
 				103182EC2C5A37FA00FF299C /* SearchBar.swift in Sources */,
 				103182E32C58D45500FF299C /* ForecastTablePreview.swift in Sources */,
 				103182DD2C57E8BC00FF299C /* ForecastListViewModel.swift in Sources */,
