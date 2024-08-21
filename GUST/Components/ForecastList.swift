@@ -1,10 +1,12 @@
 import SwiftUI
 import MapKit
+import SwiftUIIntrospect
 
 struct ForecastList: View {
     @ObservedObject var viewModel: ForecastListViewModel
     @ObservedObject var selectedLocation: SelectedLocation
     @State private var selectedSpot: KiteSpotFields?
+    @StateObject private var scrollHandler = SimultaneouslyScrollViewHandler()
     
     var body: some View {
         ScrollView {
@@ -34,7 +36,8 @@ struct ForecastList: View {
                                 bestWindDirection: spotField.bestWindDirection ?? [],
                                 lowTide: spotField.lowTide ?? "",
                                 midTide: spotField.midTide ?? "",
-                                highTide: spotField.highTide ?? ""
+                                highTide: spotField.highTide ?? "",
+                                scrollHandler: scrollHandler
                             )
                         }
                         .padding(.vertical, 20)

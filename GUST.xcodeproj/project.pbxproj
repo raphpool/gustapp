@@ -50,6 +50,8 @@
 		106B6F222C73760500BECE92 /* AWSS3Manager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 106B6F212C73760500BECE92 /* AWSS3Manager.swift */; };
 		106B6F242C737FB900BECE92 /* SplashScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 106B6F232C737FB900BECE92 /* SplashScreenView.swift */; };
 		106B6F262C747AAD00BECE92 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 106B6F252C747AAD00BECE92 /* AppState.swift */; };
+		106B6F2A2C74F2E500BECE92 /* SyncScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 106B6F292C74F2E500BECE92 /* SyncScrollView.swift */; };
+		106B6F2D2C74F4BD00BECE92 /* SwiftUIIntrospect in Frameworks */ = {isa = PBXBuildFile; productRef = 106B6F2C2C74F4BD00BECE92 /* SwiftUIIntrospect */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -108,6 +110,7 @@
 		106B6F212C73760500BECE92 /* AWSS3Manager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AWSS3Manager.swift; sourceTree = "<group>"; };
 		106B6F232C737FB900BECE92 /* SplashScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreenView.swift; sourceTree = "<group>"; };
 		106B6F252C747AAD00BECE92 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		106B6F292C74F2E500BECE92 /* SyncScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncScrollView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -118,6 +121,7 @@
 				1031830A2C5A5A9800FF299C /* AWSS3 in Frameworks */,
 				103183072C5A3E0600FF299C /* MapboxMaps in Frameworks */,
 				103183002C5A3D9A00FF299C /* AWSAPIGateway in Frameworks */,
+				106B6F2D2C74F4BD00BECE92 /* SwiftUIIntrospect in Frameworks */,
 				103183102C5A5F7900FF299C /* AWSClientRuntime in Frameworks */,
 				103183042C5A3D9A00FF299C /* AWSAccessAnalyzer in Frameworks */,
 				103182FC2C5A3D9A00FF299C /* AWSACM in Frameworks */,
@@ -236,6 +240,7 @@
 				103182EB2C5A37FA00FF299C /* SearchBar.swift */,
 				103183112C5B8F6B00FF299C /* ForecastList.swift */,
 				103182E02C58CF4E00FF299C /* ForecastTable.swift */,
+				106B6F292C74F2E500BECE92 /* SyncScrollView.swift */,
 				103182DE2C57EB0B00FF299C /* GustSpinner.swift */,
 				103182C42C57E33300FF299C /* LabelCell.swift */,
 				103182C62C57E34D00FF299C /* ModelCell.swift */,
@@ -286,6 +291,7 @@
 				103183092C5A5A9800FF299C /* AWSS3 */,
 				1031830B2C5A5A9800FF299C /* AWSS3Control */,
 				1031830F2C5A5F7900FF299C /* AWSClientRuntime */,
+				106B6F2C2C74F4BD00BECE92 /* SwiftUIIntrospect */,
 			);
 			productName = GUST;
 			productReference = 103182952C57DD0A00FF299C /* GUST.app */;
@@ -362,6 +368,7 @@
 			packageReferences = (
 				103182FA2C5A3D9A00FF299C /* XCRemoteSwiftPackageReference "aws-sdk-swift" */,
 				103183052C5A3E0600FF299C /* XCRemoteSwiftPackageReference "mapbox-maps-ios" */,
+				106B6F2B2C74F4BD00BECE92 /* XCRemoteSwiftPackageReference "swiftui-introspect" */,
 			);
 			productRefGroup = 103182962C57DD0A00FF299C /* Products */;
 			projectDirPath = "";
@@ -431,6 +438,7 @@
 				103182E52C5A34AB00FF299C /* SearchOverlayView.swift in Sources */,
 				1031830E2C5A5E7000FF299C /* ImageDetail.swift in Sources */,
 				106B6F262C747AAD00BECE92 /* AppState.swift in Sources */,
+				106B6F2A2C74F2E500BECE92 /* SyncScrollView.swift in Sources */,
 				103182EC2C5A37FA00FF299C /* SearchBar.swift in Sources */,
 				103182E32C58D45500FF299C /* ForecastTablePreview.swift in Sources */,
 				103182DD2C57E8BC00FF299C /* ForecastListViewModel.swift in Sources */,
@@ -783,6 +791,14 @@
 				kind = branch;
 			};
 		};
+		106B6F2B2C74F4BD00BECE92 /* XCRemoteSwiftPackageReference "swiftui-introspect" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/siteline/swiftui-introspect";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.3.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -830,6 +846,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 103182FA2C5A3D9A00FF299C /* XCRemoteSwiftPackageReference "aws-sdk-swift" */;
 			productName = AWSClientRuntime;
+		};
+		106B6F2C2C74F4BD00BECE92 /* SwiftUIIntrospect */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 106B6F2B2C74F4BD00BECE92 /* XCRemoteSwiftPackageReference "swiftui-introspect" */;
+			productName = SwiftUIIntrospect;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

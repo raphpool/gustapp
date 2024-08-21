@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftUIIntrospect
 
 struct ForecastTable: View {
     var records: [Record]
@@ -7,7 +8,8 @@ struct ForecastTable: View {
     var midTide: String
     var highTide: String
     @State private var expanded: Bool = false
-
+    var scrollHandler: SimultaneouslyScrollViewHandler
+    
     var body: some View {
         HStack(spacing: 0) {
             VStack(spacing: 0) {
@@ -36,6 +38,9 @@ struct ForecastTable: View {
                     }
                 }
             }
+            .introspect(.scrollView, on: .iOS(.v13, .v14, .v15, .v16, .v17, .v18)) { scrollView in
+                scrollHandler.addScrollView(scrollView)
+            }
         }
     }
 }
@@ -54,17 +59,17 @@ struct ForecastColumn: View {
             CellContent(content: "\(Int(record.fields.windSpeed))", color: windColor(record.fields.windSpeed))
             CellContent(content: "\(Int(record.fields.windGust))", color: windColor(record.fields.windGust))
             CellContent(content: modelAbbreviation(record.fields.model), color: .gray.opacity(0.2))
-
+            
             WindDirectionCell(degrees: record.fields.windDegrees, bestWindDirection: bestWindDirection)
                 .frame(width: 27, height: 28)
             
             RelativeDirectionCell(relativeDirection: record.fields.relativeDirection)
-
+            
             TideCell(description: record.fields.tideDescription ?? "",
                      height: record.fields.tideHeight ?? 0,
                      spotId: record.fields.spotId,
                      lowTide: lowTide, midTide: midTide, highTide: highTide)
-                .frame(width: 27, height: 28)
+            .frame(width: 27, height: 28)
             
             TideExtremeCell(extremeHour: record.fields.extremeHour, extremeType: record.fields.extremeType)
                 .frame(width: 27, height: 28)
@@ -73,19 +78,19 @@ struct ForecastColumn: View {
     
     private func windColor(_ speed: Double) -> Color {
         switch speed {
-                case 8...11:
-                    return Color.blueScale(ceil((speed - 7) / 4 * 10))
-                case 12...17:
-                    return Color.greenScale(ceil((speed - 11) / 6 * 10))
-                case 18...24:
-                    return Color.orangeScale(ceil((speed - 17) / 7 * 10))
-                case 25...30:
-                    return Color.redScale(ceil((speed - 24) / 6 * 10))
-                case 31...60:
-                    return Color.purpleScale(ceil((speed - 30) / 30 * 10))
-                default:
-                    return .clear
-                }
+        case 8...11:
+            return Color.blueScale(ceil((speed - 7) / 4 * 10))
+        case 12...17:
+            return Color.greenScale(ceil((speed - 11) / 6 * 10))
+        case 18...24:
+            return Color.orangeScale(ceil((speed - 17) / 7 * 10))
+        case 25...30:
+            return Color.redScale(ceil((speed - 24) / 6 * 10))
+        case 31...60:
+            return Color.purpleScale(ceil((speed - 30) / 30 * 10))
+        default:
+            return .clear
+        }
     }
     
     private func modelAbbreviation(_ model: String) -> String {
