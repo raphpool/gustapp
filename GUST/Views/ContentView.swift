@@ -59,6 +59,7 @@ struct ContentView: View {
             SearchOverlayView(isPresented: $isSearchSheetPresented)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
+                .padding(.top, 16) 
         }
         .onAppear {
             print("ContentView: onAppear triggered")
