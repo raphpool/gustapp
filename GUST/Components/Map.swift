@@ -11,6 +11,7 @@ class KiteSpotAnnotationView: UIView {
     private let tideLabel = UILabel()
     private let activityIndicator = UIActivityIndicatorView(style: .medium)
     private let errorLabel = UILabel()
+
     
     
     override init(frame: CGRect) {
@@ -161,6 +162,15 @@ class KiteSpotAnnotationView: UIView {
     }
 }
 
+extension CustomMapViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        if let annotationView = currentViewAnnotation, annotationView.frame.contains(touch.location(in: mapView)) {
+            return false
+        }
+        return true
+    }
+}
+
 
 class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
     var mapView: MapView!
@@ -192,6 +202,15 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
             updateAnnotations()
         }
     }
+    @objc private func handleMapTap(_ gesture: UITapGestureRecognizer) {
+        if let currentAnnotationView = currentViewAnnotation {
+            let point = gesture.location(in: mapView)
+            if !currentAnnotationView.frame.contains(point) {
+                mapView.viewAnnotations.remove(currentAnnotationView)
+                self.currentViewAnnotation = nil
+            }
+        }
+    }
     
     
     
@@ -210,6 +229,10 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
         viewAnnotationManager = mapView.viewAnnotations
         
         fetchAndAddKiteSpots()
+        let mapTapGesture = UITapGestureRecognizer(target: self, action: #selector(handleMapTap(_:)))
+        mapTapGesture.delegate = self
+        mapView.addGestureRecognizer(mapTapGesture)
+
     }
     
     private func fetchAndAddKiteSpots() {
