@@ -1,11 +1,17 @@
 import SwiftUI
 
 struct SearchOverlayView: View {
-    @Binding var isPresented: Bool
+    @Binding var shouldAutoFocus: Bool
     @StateObject private var searchViewModel = LocationSearchViewModel()
     @StateObject private var forecastListViewModel = ForecastListViewModel()
-    @State private var isFocused = true
+    @State private var isFocused: Bool
     @State private var isViewLoaded = false
+    @State private var isSpotPagePresented = false
+    
+    init(shouldAutoFocus: Binding<Bool>) {
+        self._shouldAutoFocus = shouldAutoFocus
+        self._isFocused = State(initialValue: shouldAutoFocus.wrappedValue)
+    }
     
     var body: some View {
         NavigationView {
@@ -31,24 +37,49 @@ struct SearchOverlayView: View {
                         Text(error)
                             .foregroundColor(.red)
                     } else {
-                        ForecastList(viewModel: forecastListViewModel, selectedLocation: searchViewModel.selectedLocation)
+                        ForecastList(viewModel: forecastListViewModel,
+                                     selectedLocation: searchViewModel.selectedLocation,
+                                     isSpotPagePresented: $isSpotPagePresented)
                     }
                 } else {
                     ProgressView()
                 }
             }
-            .navigationTitle("Trouver et comparer des spots proches")
-            .navigationBarTitleDisplayMode(.inline)
             .searchable(
                 text: $searchViewModel.searchText,
-                isPresented: $isFocused,
+                isPresented: Binding(
+                    get: { self.isFocused },
+                    set: { newValue in
+                        self.isFocused = newValue
+                        if !newValue {
+                            self.shouldAutoFocus = false
+                        }
+                    }
+                ),
                 prompt: "Paris, Almanarre, Montpellier..."
             )
-            .toolbarBackground(.white, for: .navigationBar) 
+            .toolbarBackground(.white, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
+            .navigationTitle("Trouver et comparer des spots proches")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+        .onAppear {
+            if shouldAutoFocus {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    self.isFocused = true
+                }
+            }
+        }
+        .onChange(of: isSpotPagePresented) { oldValue, newValue in
+            if newValue {
+                isFocused = false
+            }
+        }
+        .onDisappear {
+            shouldAutoFocus = false
+            isFocused = false
         }
         .task {
-            // Delay to ensure the view is fully loaded
             try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
             isViewLoaded = true
         }

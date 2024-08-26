@@ -9,6 +9,7 @@ struct ContentView: View {
     @State private var currentTimestamp: Date? = nil
     @EnvironmentObject var forecastListViewModel: ForecastListViewModel
     @EnvironmentObject var appState: AppState
+    @State private var shouldAutoFocusSearch = false
     
     
     var body: some View {
@@ -22,9 +23,7 @@ struct ContentView: View {
             )                .edgesIgnoringSafeArea(.all)
             
             VStack {
-                Button(action: {
-                    isSearchSheetPresented = true
-                }) {
+                Button(action: presentSearch) {
                     Text("Search")
                         .padding()
                         .background(Color.white)
@@ -56,11 +55,11 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $isSearchSheetPresented) {
-            SearchOverlayView(isPresented: $isSearchSheetPresented)
-                .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
-                .padding(.top, 16) 
-        }
+                    SearchOverlayView(shouldAutoFocus: $shouldAutoFocusSearch)
+                        .presentationDetents([.large])
+                        .presentationDragIndicator(.visible)
+                        .padding(.top, 16)
+                }
         .onAppear {
             print("ContentView: onAppear triggered")
             let startTime = Date()
@@ -74,8 +73,13 @@ struct ContentView: View {
                     print("ContentView: Failed to fetch files: \(error)")
                 }
             }
+            
         }
     }
+    func presentSearch() {
+            shouldAutoFocusSearch = true
+            isSearchSheetPresented = true
+        }
     
     func fetchImage(bucket: String, key: String) async {
         do {

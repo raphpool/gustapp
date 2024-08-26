@@ -8,6 +8,7 @@ struct ForecastList: View {
     @State private var selectedSpot: KiteSpotFields?
     @StateObject private var scrollHandler = SimultaneouslyScrollViewHandler()
     @State private var isSheetPresented = false
+    @Binding var isSpotPagePresented: Bool
     
     var body: some View {
         ScrollView {
@@ -52,14 +53,15 @@ struct ForecastList: View {
         .sheet(isPresented: $isSheetPresented) {
             if let spot = selectedSpot {
                 SpotPage(kiteSpot: spot, records: viewModel.forecasts[spot.spotId] ?? [])
-                    .onAppear {
-                        print("SpotPage appeared for spot: \(spot.spotName ?? "Unknown")")
-                    }
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
             }
         }
+        .onChange(of: isSheetPresented) { oldValue, newValue in
+            isSpotPagePresented = newValue
+        }
     }
+    
     
     @ViewBuilder
     private var loadMoreButton: some View {
