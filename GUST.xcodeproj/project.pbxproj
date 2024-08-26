@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		10234DBB2C7C737200CF135D /* ForecastTableStandalone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10234DBA2C7C737100CF135D /* ForecastTableStandalone.swift */; };
 		103182992C57DD0A00FF299C /* GUSTApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103182982C57DD0A00FF299C /* GUSTApp.swift */; };
 		1031829B2C57DD0A00FF299C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1031829A2C57DD0A00FF299C /* ContentView.swift */; };
 		1031829D2C57DD1200FF299C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1031829C2C57DD1200FF299C /* Assets.xcassets */; };
@@ -72,6 +73,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		10234DBA2C7C737100CF135D /* ForecastTableStandalone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastTableStandalone.swift; sourceTree = "<group>"; };
 		103182952C57DD0A00FF299C /* GUST.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GUST.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		103182982C57DD0A00FF299C /* GUSTApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GUSTApp.swift; sourceTree = "<group>"; };
 		1031829A2C57DD0A00FF299C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -240,6 +242,7 @@
 				103182EB2C5A37FA00FF299C /* SearchBar.swift */,
 				103183112C5B8F6B00FF299C /* ForecastList.swift */,
 				103182E02C58CF4E00FF299C /* ForecastTable.swift */,
+				10234DBA2C7C737100CF135D /* ForecastTableStandalone.swift */,
 				106B6F292C74F2E500BECE92 /* SyncScrollView.swift */,
 				103182DE2C57EB0B00FF299C /* GustSpinner.swift */,
 				103182C42C57E33300FF299C /* LabelCell.swift */,
@@ -420,6 +423,7 @@
 				103182CB2C57E38500FF299C /* TideExtremeCell.swift in Sources */,
 				103182C52C57E33300FF299C /* LabelCell.swift in Sources */,
 				106B6F242C737FB900BECE92 /* SplashScreenView.swift in Sources */,
+				10234DBB2C7C737200CF135D /* ForecastTableStandalone.swift in Sources */,
 				103182EF2C5A3A5100FF299C /* PickerDesign.swift in Sources */,
 				103182C72C57E34D00FF299C /* ModelCell.swift in Sources */,
 				103182CF2C57E3A900FF299C /* TimestampCell.swift in Sources */,

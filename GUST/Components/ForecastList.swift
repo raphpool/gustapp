@@ -7,6 +7,7 @@ struct ForecastList: View {
     @ObservedObject var selectedLocation: SelectedLocation
     @State private var selectedSpot: KiteSpotFields?
     @StateObject private var scrollHandler = SimultaneouslyScrollViewHandler()
+    @State private var isSheetPresented = false
     
     var body: some View {
         ScrollView {
@@ -23,9 +24,9 @@ struct ForecastList: View {
                                     .onTapGesture {
                                         print("Tapped on spot: \(spotField.spotName ?? "Unknown"), spotId: \(spotField.spotId)")
                                         selectedSpot = spotField
+                                        isSheetPresented = true
                                         print("Set selectedSpot to \(spotField.spotName ?? "Unknown")")
                                     }
-                                
                                 Text(String(format: "%.2f km", spotField.distance ?? 0))
                                     .font(.system(size: 14, weight: .medium, design: .default))
                                     .foregroundColor(.gray)
@@ -48,19 +49,15 @@ struct ForecastList: View {
                 }
             }
         }
-        .sheet(item: $selectedSpot) { spot in
-            ZStack {
-                Color.clear.onAppear {
-                    print("Sheet presentation triggered for spot: \(spot.spotName ?? "Unknown")")
-                }
-                
-                SpotDetailBottomSheet(kiteSpot: spot)
+        .sheet(isPresented: $isSheetPresented) {
+            if let spot = selectedSpot {
+                SpotPage(kiteSpot: spot, records: viewModel.forecasts[spot.spotId] ?? [])
                     .onAppear {
-                        print("SpotDetailBottomSheet appeared for spot: \(spot.spotName ?? "Unknown")")
+                        print("SpotPage appeared for spot: \(spot.spotName ?? "Unknown")")
                     }
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
             }
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
         }
     }
     

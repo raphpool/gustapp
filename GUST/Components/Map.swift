@@ -186,7 +186,7 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
     }
     var currentTimestamp: Date?
     var forecastRecords: [String: [Record]] = [:]
-    private var bottomSheetViewController: UIHostingController<SpotDetailBottomSheet>?
+    private var bottomSheetViewController: UIHostingController<SpotPage>?
     private var viewAnnotationManager: ViewAnnotationManager!
     
     private var cancelables = Set<AnyCancelable>()
@@ -490,21 +490,26 @@ class CustomMapViewController: UIViewController, AnnotationInteractionDelegate {
     }
     
     private func presentBottomSheet(for kiteSpot: KiteSpotFields) {
-        print("Presenting bottom sheet for spot: \(kiteSpot.spotName ?? "Unknown")")
-        let bottomSheetView = SpotDetailBottomSheet(kiteSpot: kiteSpot)
-        let hostingController = UIHostingController(rootView: bottomSheetView)
-        
-        if let sheet = hostingController.sheetPresentationController {
-            sheet.detents = [.large()]
-            sheet.prefersGrabberVisible = true
-            sheet.preferredCornerRadius = 20
+            print("Presenting bottom sheet for spot: \(kiteSpot.spotName ?? "Unknown")")
+            
+            let spotPage = SpotPage(
+                kiteSpot: kiteSpot,
+                records: forecastRecords[kiteSpot.spotId] ?? []
+            )
+            
+            let hostingController = UIHostingController(rootView: spotPage)
+            
+            if let sheet = hostingController.sheetPresentationController {
+                sheet.detents = [.large()]
+                sheet.prefersGrabberVisible = true
+                sheet.preferredCornerRadius = 20
+            }
+            
+            present(hostingController, animated: true) {
+                print("Bottom sheet presented successfully for spot: \(kiteSpot.spotName ?? "Unknown")")
+            }
+            bottomSheetViewController = hostingController
         }
-        
-        present(hostingController, animated: true) {
-            print("Bottom sheet presented successfully for spot: \(kiteSpot.spotName ?? "Unknown")")
-        }
-        bottomSheetViewController = hostingController
-    }
     
     
     

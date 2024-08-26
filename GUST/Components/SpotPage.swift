@@ -2,11 +2,13 @@ import SwiftUI
 
 struct SpotPage: View {
     let kiteSpot: KiteSpotFields
-    
-    init(kiteSpot: KiteSpotFields) {
-        self.kiteSpot = kiteSpot
-        print("SpotPage initialized with spot: \(kiteSpot.spotName ?? "Unknown")")
-    }
+    let records: [Record]
+
+    init(kiteSpot: KiteSpotFields, records: [Record]) {
+          self.kiteSpot = kiteSpot
+          self.records = records
+          print("SpotPage initialized with spot: \(kiteSpot.spotName ?? "Unknown"), records count: \(records.count)")
+      }
     
     var formattedTides: String {
         var tides = [String]()
@@ -152,6 +154,26 @@ struct SpotPage: View {
                         previewInfoUrl2: URL(string: kiteSpot.about2 ?? "")
                     )
                 }
+                Spacer(minLength: 20)
+
+                                // Forecast Table
+                                VStack(alignment: .leading) {
+                                    Text("Prévisions")
+                                        .font(.headline)
+                                        .padding(.bottom, 8)
+
+                                    ForecastTableStandalone(
+                                        records: records,
+                                        bestWindDirection: kiteSpot.bestWindDirection ?? [],
+                                        lowTide: kiteSpot.lowTide ?? "No",
+                                        midTide: kiteSpot.midTide ?? "No",
+                                        highTide: kiteSpot.highTide ?? "No"
+                                    )
+                                }
+                                .padding(.vertical, 10)
+                                .padding(.horizontal, 16)
+                                .background(Color.white)
+                                .cornerRadius(8)
                 
                 Spacer(minLength: 40)
             }
@@ -219,8 +241,8 @@ let sampleKiteSpot = KiteSpotFields(
     tideDescription1: "Marée basse : Impossible à pratiquer, il n'y a pas deau sur le spot\n\nMarée intermédiaire : Idéal, des chances d'obtenir des zones de flat\n\nMarée haute : Praticable, attention cependant à marée très haute il n'y a pas beaucoup de place sur la plage pour décoller et atterrir"
 )
 
-struct SpotPage_Previews: PreviewProvider {
-    static var previews: some View {
-        SpotPage(kiteSpot: sampleKiteSpot)
-    }
-}
+//struct SpotPage_Previews: PreviewProvider {
+//    static var previews: some View {
+//        SpotPage(kiteSpot: sampleKiteSpot)
+//    }
+//}
