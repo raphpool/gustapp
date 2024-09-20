@@ -24,12 +24,12 @@ struct ContentView: View {
             
             VStack {
                 Button(action: presentSearch) {
-                    Text("Search")
+                    Text("Rechercher")
                         .padding()
                         .background(Color.white)
                         .cornerRadius(10)
                 }
-                .padding(.bottom, 8)
+                .padding(.bottom, 4)
                 
                 PNGFilesScrollView(pngFiles: pngFiles) { pngFile in
                     Task {
@@ -39,7 +39,7 @@ struct ContentView: View {
                             .replacingOccurrences(of: "processed/", with: "")
                             .replacingOccurrences(of: ".png", with: "")
                             .replacingOccurrences(of: "-", with: "_")
-                            .replacingOccurrences(of: "T", with: "_") + "_Paris_Time"
+                            .replacingOccurrences(of: "T", with: "_")
                         
                         self.selectedTilesetId = tilesetId
                         self.currentTimestamp = extractTimestamp(from: pngFile.fullName)
